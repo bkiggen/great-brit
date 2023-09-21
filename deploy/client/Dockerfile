@@ -1,9 +1,9 @@
 FROM node:18.16.0-alpine as build
 
 WORKDIR /app
-COPY ../../client/package*.json ./
+COPY package*.json ./
 RUN npm ci --silent
-COPY ../../client. .
+COPY . .
 RUN npm run build
 
 # The second stage
