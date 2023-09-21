@@ -4,8 +4,8 @@ services:
   client:
     restart: unless-stopped
     build:
-      context: ./server # Adjust the path to point to your server directory
-      dockerfile: ../deploy/server/Dockerfile
+      context: ./client
+      dockerfile: ../deploy/client/Dockerfile
     ports:
       - 3000:3000
     volumes:
@@ -16,7 +16,7 @@ services:
   server:
     restart: unless-stopped
     build:
-      context: ./server # Adjust the path to point to your server directory
+      context: ./server
       dockerfile: ../deploy/server/Dockerfile
     volumes:
       - ./server:/app

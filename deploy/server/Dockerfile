@@ -5,13 +5,13 @@ FROM node:18 as production
 WORKDIR /app
 
 # Copy the package.json and package-lock.json files to the container
-COPY /server/package*.json ./
+COPY ./package*.json ./
 
 # Install production dependencies
 RUN npm install --production
 
 # Copy the server application code to the container
-COPY /server ./
+COPY . .
 
 # Expose the port your server will run on
 EXPOSE 4000
