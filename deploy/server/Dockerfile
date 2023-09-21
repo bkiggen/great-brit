@@ -1,24 +1,20 @@
-# Use the specified Node.js version as build
-FROM node:18 as build
+# Use a smaller Node.js base image
+FROM node:18 as production
 
-# Set the working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if exists)
-COPY package*.json ./
+# Copy the package.json and package-lock.json files to the container
+COPY /server/package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install production dependencies
+RUN npm install --production
 
-# Copy the rest of the server app files
-COPY . .
+# Copy the server application code to the container
+COPY /server ./
 
-# The second stage
-# Use nginx as the final image
-FROM nginx:stable-alpine
+# Expose the port your server will run on
+EXPOSE 4000
 
-# Copy the build output from the previous stage to the nginx web server directory
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the server
+CMD ["node", "index.js"]
