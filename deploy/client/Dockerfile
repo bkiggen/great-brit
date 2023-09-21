@@ -1,3 +1,4 @@
+# Stage 1: Build the React application
 FROM node:18 as build
 
 WORKDIR /app
@@ -6,8 +7,11 @@ RUN npm install
 COPY client ./
 RUN npm run build
 
-# The second stage
-# Copy React static files and start nginx
+# Stage 2: Serve the React application using Nginx
 FROM nginx:stable-alpine
+
+# Copy the build output from the previous stage (/app/build) to /usr/share/nginx/html
 COPY --from=build /app/build /usr/share/nginx/html
+
+# Start Nginx with the command ["nginx", "-g", "daemon off;"]
 CMD ["nginx", "-g", "daemon off;"]
