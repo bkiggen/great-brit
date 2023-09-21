@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Build the React application
-RUN npm run build
+RUN npm run build --loglevel verbose
 
 # Stage 2: Serve the React application using Nginx
 FROM nginx:stable-alpine
