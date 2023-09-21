@@ -4,7 +4,6 @@ WORKDIR /app
 COPY server/package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build
 
 # The second stage
 # Copy React static files and start nginx
