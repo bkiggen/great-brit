@@ -18,9 +18,6 @@ RUN npm run build --loglevel verbose
 # Stage 2: Serve the React application using Nginx
 FROM nginx:stable-alpine
 
-# Install Nginx
-RUN apk update && apk add nginx
-
 # Copy the build output from the previous stage (/app/build) to /usr/share/nginx/html
 COPY --from=build /app/build /usr/share/nginx/html
 
