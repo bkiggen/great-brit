@@ -1,5 +1,5 @@
-# Use Amazon Linux 2 as the base image
-FROM amazonlinux:2 as production
+# Use a smaller Node.js base image
+FROM node:18 as production
 
 # Set the working directory in the container
 WORKDIR /app
@@ -8,7 +8,6 @@ WORKDIR /app
 COPY ./package*.json ./
 
 # Install production dependencies
-RUN yum install -y nodejs npm
 RUN npm install --production
 
 # Copy the server application code to the container
