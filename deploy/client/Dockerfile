@@ -13,13 +13,13 @@ RUN npm install
 COPY . .
 
 # Build the React application
-RUN npm run build
+RUN npm run build --loglevel verbose
 
 # Stage 2: Serve the React application using Nginx
-FROM amazonlinux:2 as nginx
+FROM nginx:stable-alpine
 
 # Install Nginx
-RUN yum update -y && yum install -y nginx
+RUN apk --no-cache add nginx
 
 # Copy the build output from the previous stage (/app/build) to /usr/share/nginx/html
 COPY --from=build /app/build /usr/share/nginx/html

@@ -1,8 +1,8 @@
-# Use an image that includes Certbot and Nginx
+# Use an image that includes certbot and nginx
 FROM certbot/certbot
 
-# Update and install Nginx using yum
-RUN yum update -y && yum install -y nginx
+# Install any additional packages you may need
+RUN apt-get update && apt-get install -y nginx
 
 # Entrypoint command to start Certbot
 ENTRYPOINT ["certbot"]
