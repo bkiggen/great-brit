@@ -30,6 +30,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+gbb-ssh.pem
+
 # Add the ignore rules from the client's .gitignore below
 # These rules were moved from the client folder's .gitignore
 

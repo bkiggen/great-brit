@@ -4,10 +4,10 @@ services:
   client:
     restart: unless-stopped
     build:
-      context: ./client
-      dockerfile: ../deploy/client/Dockerfile
+      context: .
+      dockerfile: deploy/client/Dockerfile
     ports:
-      - 3000:3000
+      - 80:80
     volumes:
       - ./deploy/nginx:/etc/nginx/conf.d
       - ./deploy/certbot/conf:/etc/letsencrypt
@@ -16,13 +16,14 @@ services:
   server:
     restart: unless-stopped
     build:
-      context: ./server
-      dockerfile: ../deploy/server/Dockerfile
+      context: .
+      dockerfile: deploy/server/Dockerfile
     volumes:
       - ./server:/app
       - /app/node_modules
     ports:
       - 4000:4000
+
   certbot:
     build:
       context: ./deploy/certbot
