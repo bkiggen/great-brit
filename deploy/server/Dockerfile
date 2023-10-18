@@ -1,5 +1,5 @@
 # Use a smaller Node.js base image
-FROM node:19.5.0-alpine as production
+FROM node:18-alpine as production
 
 # Set the working directory in the container
 WORKDIR /app
