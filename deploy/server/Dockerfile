@@ -1,5 +1,5 @@
 # Use a smaller Node.js base image
-FROM node:18 as production
+FROM node:19.5.0-alpine as production
 
 # Set the working directory in the container
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY ./package*.json ./
 
 # Install production dependencies
-RUN npm install
+RUN npm install --production
 
 # Copy the server application code to the container
 COPY . .
