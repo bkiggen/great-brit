@@ -1,17 +1,12 @@
-# Use a smaller Node.js base image
-FROM node:19.5.0-alpine as build
-
-# Set the working directory in the container
+# Build stage
+FROM node:18.16.0-alpine as build
 WORKDIR /app
-
-# Copy package.json and package-lock.json (if exists)
 COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the app files
+RUN npm ci
 COPY . .
+RUN npm run build
 
-# Build the React application
-RUN npm run build --loglevel verbose
+# Second stage
+FROM nginx:stable-alpine
+COPY --from=build /app/build /usr/share/nginx/html
+CMD ["nginx", "-g", "daemon off;"]
