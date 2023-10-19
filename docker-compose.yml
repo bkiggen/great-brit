@@ -6,12 +6,8 @@ services:
     build:
       context: ./client
     ports:
-      - 80:80
-    volumes:
-      - ./deploy/nginx:/etc/nginx/conf.d
-      - ./deploy/certbot/conf:/etc/letsencrypt
-      - ./deploy/certbot/www:/var/www/certbot
-    command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
+      - 3000:3000
+
   server:
     restart: unless-stopped
     build:
@@ -21,6 +17,13 @@ services:
       - /app/node_modules
     ports:
       - 4000:4000
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./client/build:/usr/share/nginx/html
 
   certbot:
     build:
