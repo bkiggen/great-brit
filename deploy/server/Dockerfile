@@ -5,7 +5,7 @@ FROM node:18-alpine as production
 WORKDIR /app
 
 # Copy the package.json and package-lock.json files to the container
-COPY ./package*.json ./
+COPY package*.json ./
 
 # Install production dependencies
 RUN npm install --production
