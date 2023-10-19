@@ -1,20 +1,25 @@
-# Use a smaller Node.js base image
-FROM node:18-alpine as production
+# Stage 1: Build the Node.js application
+FROM node:14 as build
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json files to the container
+# Copy package.json and package-lock.json and install dependencies
 COPY package*.json ./
+RUN npm install
 
-# Install production dependencies
-RUN npm install --production
-
-# Copy the server application code to the container
+# Copy the application source code
 COPY . .
 
-# Expose the port your server will run on
-EXPOSE 4000
+# Stage 2: Create a lightweight production image
+FROM node:14
 
-# Start the server
-CMD ["node", "index.js"]
+WORKDIR /app
+
+# Copy the production-ready code from the previous stage
+COPY --from=build /app .
+
+# Expose the port your Express app will run on
+EXPOSE 3000
+
+# Start your Express application using the "start" script
+CMD ["npm", "start"]
