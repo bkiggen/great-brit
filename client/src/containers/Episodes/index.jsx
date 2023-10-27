@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, TextField } from "@mui/material";
 import { styles } from "./styles";
-import { fetchEpisodes, createEpisode } from "store/episodesSlice";
+import { fetchEpisodes, createEpisode } from "@/store/episodesSlice";
 import Events from "../../components/Events";
-import BetTable from "containers/Bets/BetTable";
+import BetTable from "@/containers/Bets/BetTable";
 
 const Admin = () => {
   const dispatch = useDispatch();

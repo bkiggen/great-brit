@@ -1,13 +1,13 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { sessionSelector } from "store";
+import { sessionSelector } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
-import { getInitials } from "helpers/getInitials";
+import { getInitials } from "@/helpers/getInitials";
 import { Button, Card, Typography, Box } from "@mui/material";
-import { logoutUser } from "store/sessionSlice";
+import { logoutUser } from "@/store/sessionSlice";
 import LinkItem from "./LinkItem";
-import ChatWidget from "components/ChatWidget";
-import Tent from "components/icons/Tent";
+import ChatWidget from "@/components/ChatWidget";
+import Tent from "@/components/icons/Tent";
 import { styles } from "./styles";
 
 const Header = ({ socket }) => {

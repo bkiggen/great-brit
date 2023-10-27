@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { Button, TextField, Select, MenuItem } from "@mui/material";
-import { createEvent } from "store/eventsSlice";
+import { createEvent } from "@/store/eventsSlice";
 import { styles } from "./styles";
-import { fetchStars, starsSelector } from "store/starsSlice";
-import { fetchEventsByEpisode, eventsSelector } from "store/eventsSlice";
+import { fetchStars, starsSelector } from "@/store/starsSlice";
+import { fetchEventsByEpisode, eventsSelector } from "@/store/eventsSlice";
 
 const Events = ({ episodeId }) => {
   const dispatch = useDispatch();

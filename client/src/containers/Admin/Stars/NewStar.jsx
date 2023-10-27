@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Button, TextField } from "@mui/material";
-import { createStar } from "store/starsSlice";
+import { createStar } from "@/store/starsSlice";
 
 import { styles } from "./styles";
 

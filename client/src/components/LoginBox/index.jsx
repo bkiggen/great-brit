@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { sessionSelector } from "store";
+import { sessionSelector } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
-import { loginUser } from "store/sessionSlice";
-import { registerUser } from "store/usersSlice";
+import { loginUser } from "@/store/sessionSlice";
+import { registerUser } from "@/store/usersSlice";
 import Input from "@mui/material/Input";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";

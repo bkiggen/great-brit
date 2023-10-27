@@ -4,7 +4,7 @@ export const fetchFromApi = async (url, method, body) => {
   const state = store.getState();
   const { sessionToken } = state.session;
 
-  const res = await fetch(`http://server:4000${url}`, {
+  const res = await fetch(`http://100.26.32.89:4000${url}`, {
     method,
     headers: {
       "Content-Type": "application/json",

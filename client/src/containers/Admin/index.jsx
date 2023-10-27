@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEpisodes } from "store/episodesSlice";
+import { fetchEpisodes } from "@/store/episodesSlice";
 
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";

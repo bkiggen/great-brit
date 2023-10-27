@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { sessionSelector } from "store";
+import { sessionSelector } from "@/store";
 import { css } from "@emotion/css";
 import { Button } from "@mui/material";
-import { fetchBets, fetchBetsByEpisode } from "store/betsSlice";
-import { betsSelector } from "store/betsSlice";
+import { fetchBets, fetchBetsByEpisode } from "@/store/betsSlice";
+import { betsSelector } from "@/store/betsSlice";
 
 const Bets = ({ episodeId }) => {
   const dispatch = useDispatch();

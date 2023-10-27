@@ -4,7 +4,7 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import BetTable from "containers/Bets/BetTable";
+import BetTable from "@/containers/Bets/BetTable";
 import BankBalance from "./BankBalance";
 import { styles } from "./styles";
 

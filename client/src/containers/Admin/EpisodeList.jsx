@@ -1,8 +1,8 @@
 import React from "react";
 import { useSelector } from "react-redux";
 
-import Events from "components/Events";
-import BetTable from "containers/Bets/BetTable";
+import Events from "@/components/Events";
+import BetTable from "@/containers/Bets/BetTable";
 
 const EpisodeList = ({ active, setActive }) => {
   const episodes = useSelector((state) => state.episodes.list);

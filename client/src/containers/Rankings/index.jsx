@@ -7,7 +7,7 @@ import {
   fetchRankings,
   postRankings,
   rankingsSelector,
-} from "store/rankingsSlice";
+} from "@/store/rankingsSlice";
 import { getItemStyle, getListStyle } from "./styles";
 
 // fake data generator

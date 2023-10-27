@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Button, TextField } from "@mui/material";
-import { createEpisode } from "store/episodesSlice";
+import { createEpisode } from "@/store/episodesSlice";
 
 const CreateEpisode = () => {
   const dispatch = useDispatch();

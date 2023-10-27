@@ -1,14 +1,14 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from "./App";
-import { sessionSelector } from "store";
+import { sessionSelector } from "@/store";
 import { useSelector } from "react-redux";
 
-import Home from "containers/Home";
-import Rankings from "containers/Rankings";
-import Bets from "containers/Bets";
-import Episodes from "containers/Episodes";
-import Admin from "containers/Admin";
-import Login from "containers/Login";
+import Home from "@/containers/Home";
+import Rankings from "@/containers/Rankings";
+import Bets from "@/containers/Bets";
+import Episodes from "@/containers/Episodes";
+import Admin from "@/containers/Admin";
+import Login from "@/containers/Login";
 
 const ProtectedRoute = ({ element }) => {
   const session = useSelector(sessionSelector);

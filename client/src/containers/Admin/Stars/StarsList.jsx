@@ -4,8 +4,8 @@ import {
   fetchStars,
   deleteStar, // Import the deleteStar action
   sendHomeStar, // Import the sendHomeStar action
-} from "store/starsSlice";
-import { starsSelector } from "store/starsSlice";
+} from "@/store/starsSlice";
+import { starsSelector } from "@/store/starsSlice";
 import { tableStyles } from "./styles";
 
 const StarsList = () => {

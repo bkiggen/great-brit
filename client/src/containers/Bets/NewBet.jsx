@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, TextField, MenuItem, Select, Chip } from "@mui/material";
-import { createBet } from "store/betsSlice";
-import { fetchUsers } from "store/usersSlice";
-import { usersSelector } from "store";
+import { createBet } from "@/store/betsSlice";
+import { fetchUsers } from "@/store/usersSlice";
+import { usersSelector } from "@/store";
 
 import { styles } from "./styles";
 

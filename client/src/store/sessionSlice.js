@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { makeRequest } from "helpers/makeRequest";
+import { makeRequest } from "@/helpers/makeRequest";
 
 const initialState = {
   user: null,
