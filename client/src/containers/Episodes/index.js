@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, TextField } from "@mui/material";
-import { styles } from "./styles";
-import { fetchEpisodes, createEpisode } from "store/episodesSlice";
-import AdminEvents from "../../components/Events";
+import { fetchEpisodes } from "store/episodesSlice";
+import { Typography } from "@mui/material";
 
-const Admin = () => {
+import BetTable from "containers/Bets/BetTable";
+import CreateEpisode from "./CreateEpisode";
+import Events from "../../components/Events";
+
+import { styles } from "./styles";
+
+const Episodes = ({ admin }) => {
   const dispatch = useDispatch();
   const episodes = useSelector((state) => state.episodes.list);
 
@@ -27,6 +31,7 @@ const Admin = () => {
 
   return (
     <div className={`episodes ${styles}`}>
+      {admin && <CreateEpisode episodes={episodes} />}
       <div className="folder">
         <div className="tabs">
           {episodes.map((episode) => {
@@ -46,11 +51,22 @@ const Admin = () => {
         </div>
         <div className="main">
           <h1>Episode {active?.number}</h1>
-          {active && <AdminEvents episodeId={active?._id} />}
+          {active && <Events episodeId={active?._id} />}
+          {active && (
+            <>
+              <Typography
+                variant="h5"
+                sx={{ marginTop: "48px", fontSize: "24px", fontWeight: "500" }}
+              >
+                Bets:
+              </Typography>
+              <BetTable episodeId={active?._id} readOnly admin={admin} />
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default Admin;
+export default Episodes;

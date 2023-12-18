@@ -43,6 +43,30 @@ const starRoutes = (router) => {
     }
   });
 
+  router.put("/stars/:starId", authenticateUser, async (req, res) => {
+    const starId = req.params.starId;
+    const { active } = req.body;
+
+    try {
+      // Find the star by ID
+      const star = await Star.findOne({ id: starId });
+
+      if (!star) {
+        return res.status(404).json({ message: "Star not found" });
+      }
+
+      star.active = active;
+
+      // Save the updated star
+      const updatedStar = await star.save();
+
+      res.json({ star: updatedStar });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   return router;
 };
 

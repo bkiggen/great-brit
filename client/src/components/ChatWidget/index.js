@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useSelector, useDispatch } from "react-redux";
 import { sessionSelector } from "store";
-import { fetchUsers } from "store/usersSlice";
-import { usersSelector } from "store";
+import { fetchUsers, usersSelector } from "store/usersSlice";
 
 import ChatWindow from "components/ChatWidget/ChatWindow";
 

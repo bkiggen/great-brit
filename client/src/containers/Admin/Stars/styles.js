@@ -3,7 +3,6 @@ import { css } from "@emotion/css";
 export const styles = css`
   width: 60%;
   margin: 0 auto;
-  margin-top: 120px;
   padding: 30px;
   background: white;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.15);

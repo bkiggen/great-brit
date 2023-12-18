@@ -2,42 +2,29 @@ import Star from "../../models/Star.js";
 import Ranking from "../../models/Ranking.js";
 import Session from "../../models/Session.js";
 import { authenticateUser } from "./authMiddleware.js";
+import Episode from "../../models/Episode.js";
 
 const rankingsRoutes = (router) => {
+  // GET ALL RANKINGS
   router.get("/rankings", authenticateUser, async (req, res) => {
     try {
+      const episodeId = req.query.episodeId;
+
       const sessionToken = req.headers.authorization.split(" ")[1];
       const session = await Session.findOne({ token: sessionToken });
 
-      if (!session) {
+      if (!session || !episodeId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      let userRankings = await Ranking.find({ userId: session.userId })
+      const episode = await Episode.findOne({ _id: episodeId });
+
+      let userRankings = await Ranking.find({
+        userId: session.userId,
+        episode: episode.number,
+      })
         .populate("starId") // Populate the related Star data
         .sort({ rank: 1 }); // Sort the rankings by rank
-
-      if (userRankings.length === 0) {
-        // Populate userRankings if it's empty
-        const stars = await Star.find();
-
-        // Create and save default rankings for each star
-        userRankings = await Promise.all(
-          stars.map(async (star, index) => {
-            const newRanking = new Ranking({
-              userId: session.userId,
-              starId: star._id,
-              rank: index + 1,
-            });
-            return newRanking.save();
-          })
-        );
-
-        // Populate the starId field in the userRankings array
-        userRankings = await Ranking.find({ userId: session.userId })
-          .populate("starId")
-          .sort({ rank: 1 });
-      }
 
       res.json({ rankings: userRankings });
     } catch (error) {
@@ -46,6 +33,7 @@ const rankingsRoutes = (router) => {
     }
   });
 
+  // UPDATE RANKINGS FOR USER
   router.post("/rankings", authenticateUser, async (req, res) => {
     const sessionToken = req.headers.authorization.split(" ")[1];
     const { rankings } = req.body;
@@ -56,6 +44,8 @@ const rankingsRoutes = (router) => {
       if (!session) {
         return res.status(401).json({ message: "Unauthorized" });
       }
+
+      const episode = await Episode.findOne().sort({ number: -1 });
 
       const userId = session.userId;
 
@@ -72,6 +62,7 @@ const rankingsRoutes = (router) => {
           userId,
           starId: star._id,
           rank: rankedStar.rank,
+          episode: episode.number,
         }).save();
       });
 

@@ -2,16 +2,16 @@ import { css } from "@emotion/css";
 
 export const styles = css`
   width: 100%;
-  margin-top: 160px;
-  padding-bottom: 160px;
+  padding-top: 180px;
+  width: 90%;
+  margin: 0 auto;
 
   .folder {
     background-color: var(--manilla);
-    width: 70%;
-    margin: 0 auto;
     border-radius: 0 4px 4px 0;
     min-height: 900px;
     display: flex;
+    margin-top: 24px;
 
     .tabs {
       width: 40px;

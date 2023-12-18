@@ -28,6 +28,9 @@ export const styles = css`
     display: flex;
     align-items: center;
     margin-bottom: 48px;
+    form {
+      width: 100%;
+    }
   }
 
   .formRow {

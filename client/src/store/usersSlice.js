@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { makeRequest } from "../helpers/makeRequest";
 
+export const usersSelector = (state) => state.users.list;
+
 const initialState = {
   list: [],
 };
@@ -9,6 +11,15 @@ export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
   const data = await makeRequest.get("/users");
   return data.users;
 });
+
+export const fetchUsersWithRankingsByEpisode = createAsyncThunk(
+  "users/fetchUsersWithRankingsByEpisode",
+  async (episodeId) => {
+    const data = await makeRequest.get(`/users/usersWithRankings/${episodeId}`);
+
+    return data.users;
+  }
+);
 
 export const registerUser = createAsyncThunk(
   "session/registerUser",
@@ -43,6 +54,12 @@ export const usersSlice = createSlice({
       state.loading = false;
       state.error = action.error.message;
     });
+    builder.addCase(
+      fetchUsersWithRankingsByEpisode.fulfilled,
+      (state, action) => {
+        state.list = action.payload;
+      }
+    );
   },
 });
 

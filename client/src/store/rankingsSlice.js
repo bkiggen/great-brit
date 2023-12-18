@@ -9,8 +9,8 @@ const initialState = {
 
 export const fetchRankings = createAsyncThunk(
   "rankings/fetchRankings",
-  async () => {
-    const data = await makeRequest.get("/rankings");
+  async ({ episodeId }) => {
+    const data = await makeRequest.get("/rankings", { episodeId });
 
     return data.rankings;
   }

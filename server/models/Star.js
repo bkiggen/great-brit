@@ -5,6 +5,10 @@ const starSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   bio: String,
+  active: {
+    type: Boolean,
+    default: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

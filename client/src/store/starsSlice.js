@@ -22,6 +22,15 @@ export const createStar = createAsyncThunk(
   }
 );
 
+export const updateStar = createAsyncThunk(
+  "stars/updateStar",
+  async (starData) => {
+    const data = await makeRequest.put(`/stars/${starData.starId}`, starData);
+
+    return data.star;
+  }
+);
+
 export const starsSlice = createSlice({
   name: "stars",
   initialState,
@@ -32,6 +41,12 @@ export const starsSlice = createSlice({
     });
     builder.addCase(createStar.fulfilled, (state, action) => {
       state.list.push(action.payload);
+    });
+    builder.addCase(updateStar.fulfilled, (state, action) => {
+      const index = state.list.findIndex(
+        (star) => star.id === action.payload.id
+      );
+      state.list[index] = action.payload;
     });
   },
 });

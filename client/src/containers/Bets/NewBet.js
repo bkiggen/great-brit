@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, TextField, MenuItem, Select, Chip } from "@mui/material";
+import {
+  Button,
+  TextField,
+  MenuItem,
+  Select,
+  Chip,
+  Box,
+  Grid,
+  Typography,
+} from "@mui/material";
 import { createBet } from "store/betsSlice";
-import { fetchUsers } from "store/usersSlice";
-import { usersSelector } from "store";
-
-import { styles } from "./styles";
+import { fetchUsers, usersSelector } from "store/usersSlice";
 
 const Bets = () => {
   const dispatch = useDispatch();
@@ -43,116 +49,142 @@ const Bets = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={`myClass ${styles}`}>
-      <div className="top">
-        <span className="title">Propose a New Bet</span>
-      </div>
-      <div className="bottom">
-        <div className="left">
+    <Box
+      sx={{
+        width: "90%",
+        maxWidth: "900px",
+        margin: "0 auto",
+        marginTop: "120px",
+        padding: "30px",
+        background: "white",
+        boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.15)",
+        borderRadius: "4px",
+      }}
+    >
+      <Box sx={{ fontSize: "20px", fontWeight: "bold" }}>Propose a New Bet</Box>
+      <TextField
+        label="Description"
+        multiline
+        maxRows={4}
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        fullWidth
+        sx={{ display: "flex", alignItems: "center", marginTop: "24px" }}
+      />
+      <Grid
+        container
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          marginTop: "24px",
+        }}
+      >
+        <Box
+          sx={{ display: "flex", alignItems: "center", marginRight: "24px" }}
+        >
           <TextField
-            label="Description"
-            multiline
-            maxRows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            select
+            label="Odds"
+            value={selectedOdds[0]}
+            onChange={(e) =>
+              setSelectedOdds((prev) => [e.target.value, prev[1]])
+            }
+            variant="outlined"
+            sx={{ minWidth: "100px", marginRight: "12px" }}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((odds) => (
+              <MenuItem key={odds} value={odds}>
+                {odds}
+              </MenuItem>
+            ))}
+          </TextField>
+          <span>to</span>
+          <TextField
+            select
+            value={selectedOdds[1]}
+            onChange={(e) =>
+              setSelectedOdds((prev) => [prev[0], e.target.value])
+            }
+            variant="outlined"
+            sx={{ minWidth: "100px", marginLeft: "12px", marginRight: "12px" }}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((odds) => (
+              <MenuItem key={odds} value={odds}>
+                {odds}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <TextField
+            label="Max Loss"
+            variant="outlined"
+            value={maxLose}
+            onChange={(e) => setMaxLose(e.target.value)}
+            sx={{ marginRight: "12px" }}
           />
-        </div>
-        <div className="center">
-          <div className="formItem oddsContainer">
-            <TextField
-              select
-              label="Odds"
-              value={selectedOdds[0]}
-              onChange={(e) =>
-                setSelectedOdds((prev) => [e.target.value, prev[1]])
-              }
-              variant="outlined"
-              sx={{ width: "40%" }}
+          <TextField
+            label="Max Win"
+            variant="outlined"
+            value={maxLose ? maxWin : ""}
+            disabled
+          />
+        </Box>
+      </Grid>
+      <Grid
+        container
+        sx={{ marginTop: "18px", display: "flex", flexDirection: "column" }}
+      >
+        <Typography sx={{ fontSize: "14px", color: "GrayText" }}>
+          Eligible Users
+        </Typography>
+        <Select
+          multiple
+          value={selectedUsers}
+          onChange={handleUserChange}
+          renderValue={(selected) => (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                width: "100%",
+              }}
             >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((odds) => (
-                <MenuItem key={odds} value={odds}>
-                  {odds}
-                </MenuItem>
-              ))}
-            </TextField>
-            to
-            <TextField
-              select
-              value={selectedOdds[1]}
-              onChange={(e) =>
-                setSelectedOdds((prev) => [prev[0], e.target.value])
-              }
-              variant="outlined"
-              sx={{ width: "40%" }}
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((odds) => (
-                <MenuItem key={odds} value={odds}>
-                  {odds}
-                </MenuItem>
-              ))}
-            </TextField>
-          </div>
-          <div className="formItem usersContainer">
-            <Select
-              multiple
-              value={selectedUsers}
-              onChange={handleUserChange}
-              renderValue={(selected) => (
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    width: "100%",
-                  }}
-                >
-                  {selected.map((userId) => {
-                    const user = users.find((user) => user._id === userId);
-                    return (
-                      <Chip
-                        key={userId}
-                        label={`${user.firstName} ${user.lastName}`}
-                        sx={{ margin: "2px" }}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-            >
-              {users.map((user) => (
-                <MenuItem key={user._id} value={user._id}>
-                  {`${user.firstName} ${user.lastName}`}
-                </MenuItem>
-              ))}
-            </Select>
-          </div>
-        </div>
-        <div className="right">
-          <div className="formItem">
-            <TextField
-              id="standard-basic"
-              label="Max You'll Lose"
-              variant="outlined"
-              value={maxLose}
-              onChange={(e) => setMaxLose(e.target.value)}
-            />
-          </div>
-          <div className="formItem">
-            <TextField
-              id="standard-basic"
-              label="Max You'll Win"
-              variant="outlined"
-              value={maxLose ? maxWin : ""}
-              disabled
-            />
-          </div>
-          <div className="submit">
-            <Button variant="contained" onClick={handleSubmit}>
-              Submit
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+              {selected.map((userId) => {
+                const user = users.find((user) => user._id === userId);
+                return (
+                  <Chip
+                    key={userId}
+                    label={`${user.firstName} ${user.lastName}`}
+                    sx={{ margin: "2px" }}
+                  />
+                );
+              })}
+            </div>
+          )}
+          sx={{ minWidth: "350px", width: "65%" }}
+        >
+          {users.map((user) => (
+            <MenuItem key={user._id} value={user._id}>
+              {`${user.firstName} ${user.lastName}`}
+            </MenuItem>
+          ))}
+        </Select>
+      </Grid>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          marginTop: "24px",
+        }}
+      >
+        <Button variant="contained" onClick={handleSubmit}>
+          Submit
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

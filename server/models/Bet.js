@@ -2,24 +2,33 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
-const eligibleUserSchema = new Schema({
-  id: String,
-  firstName: String,
-  lastName: String,
-});
-
 const betSchema = new mongoose.Schema({
   id: String,
   description: String,
   better: {
-    id: String,
-    firstName: String,
-    lastName: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
   odds: Number,
   maxLose: Number,
-  eligibleUsers: [eligibleUserSchema],
-  acceptedUsers: [eligibleUserSchema],
+  eligibleUsers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  acceptedUsers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  episode: {
+    type: Number,
+  },
+  won: {
+    type: Boolean,
+  },
 });
 
 export default mongoose.model("Bet", betSchema);

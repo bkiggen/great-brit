@@ -1,36 +1,61 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchEpisodes } from "store/episodesSlice";
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Tabs, Tab } from "@mui/material";
 
-import Stars from "./Stars";
-import CreateEpisode from "./CreateEpisode";
-import EpisodeList from "./EpisodeList";
+import Stars from "containers/Admin/Stars";
+import Episodes from "containers/Episodes";
 
-import { styles } from "./styles";
+const AdminPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-const Admin = () => {
-  const dispatch = useDispatch();
-  const episodes = useSelector((state) => state.episodes.list);
+  const tabPaths = [
+    {
+      path: "/admin/episodes",
+      component: <Episodes admin />,
+      label: "Episodes",
+    },
+    { path: "/admin/stars", component: <Stars />, label: "Stars" },
+  ];
 
-  const [active, setActive] = useState(null);
+  const selectedTab =
+    tabPaths.find((tab) => location.pathname.includes(tab.path)) || tabPaths[0];
 
-  useEffect(() => {
-    if (episodes.length > 0) {
-      setActive(episodes[episodes.length - 1]);
-    }
-  }, [episodes]);
-
-  useEffect(() => {
-    dispatch(fetchEpisodes());
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const handleTabChange = (event, newValue) => {
+    navigate(newValue);
+  };
 
   return (
-    <div className={`episodes ${styles}`}>
-      <Stars />
-      <CreateEpisode />
-      <EpisodeList active={active} setActive={setActive} />
-    </div>
+    <>
+      <Tabs
+        value={selectedTab.path}
+        onChange={handleTabChange}
+        sx={{
+          marginBottom: "40px",
+          borderBottom: "1px solid lightgrey",
+          backgroundColor: "white",
+          position: "fixed",
+          width: "100vw",
+          zIndex: "999",
+          marginTop: "64px",
+        }}
+      >
+        {tabPaths.map((tab) => (
+          <Tab
+            key={tab.path}
+            label={tab.label}
+            value={tab.path}
+            wrapped
+            sx={{
+              fontWeight: "600",
+              width: "120px",
+            }}
+          />
+        ))}
+      </Tabs>
+      <div className="container">{selectedTab.component}</div>
+    </>
   );
 };
 
-export default Admin;
+export default AdminPage;

@@ -9,6 +9,10 @@ const episodeSchema = new mongoose.Schema({
       ref: "Event",
     },
   ],
+  current: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export default mongoose.model("Episode", episodeSchema);

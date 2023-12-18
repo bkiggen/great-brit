@@ -1,16 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { Button, TextField, Select, MenuItem } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
+  Box,
+} from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { createEvent } from "store/eventsSlice";
-import { styles } from "./styles";
 import { fetchStars, starsSelector } from "store/starsSlice";
 import { fetchEventsByEpisode, eventsSelector } from "store/eventsSlice";
+import {
+  fetchUsersWithRankingsByEpisode,
+  usersSelector,
+} from "store/usersSlice";
+
+import { styles } from "./styles";
 
 const AdminEvents = ({ episodeId }) => {
   const dispatch = useDispatch();
   const stars = useSelector(starsSelector);
   const events = useSelector(eventsSelector);
+  const users = useSelector(usersSelector);
 
   const isAdminView = useLocation().pathname === "/admin";
 
@@ -24,6 +42,10 @@ const AdminEvents = ({ episodeId }) => {
   useEffect(() => {
     dispatch(fetchStars());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    dispatch(fetchUsersWithRankingsByEpisode(episodeId));
+  }, [episodeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchEventsByEpisode(episodeId));
@@ -58,25 +80,45 @@ const AdminEvents = ({ episodeId }) => {
     });
   };
 
+  const columns = [
+    { field: "description", headerName: "Description", flex: 1 },
+    // { field: "time", headerName: "Time", flex: 1 },
+    { field: "baseAmount", headerName: "Base Amount", flex: 1 },
+    {
+      field: "star",
+      headerName: "Star",
+      flex: 1,
+      valueGetter: (params) => {
+        if (!params.row.star) return "—";
+        return `${params.row.star.firstName} ${params.row.star.lastName}`;
+      },
+    },
+  ];
+
   return (
     <div className={`admin-events ${styles}`}>
-      <div className={isAdminView ? "adminTitle" : "title"}>Events:</div>
+      <Typography
+        variant="h5"
+        sx={{ marginTop: "48px", fontSize: "24px", fontWeight: "500" }}
+      >
+        Events:
+      </Typography>
       <div className="addNew">
         {isAdminView && (
           <form onSubmit={handleSubmit}>
             <div className="formRow">
-              <TextField
+              {/* <TextField
                 label="Time (MM:SS)"
                 name="time"
                 value={formData.time}
                 onChange={handleChange}
-                required
-                sx={{ width: "120px" }}
+                sx={{ width: "30%" }}
                 inputProps={{
                   pattern: "^([0-5]?[0-9]):([0-5][0-9])$",
                   title: "Please enter time in MM:SS format",
                 }}
-              />
+                fullWidth
+              /> */}
               <TextField
                 label="Base Amount"
                 name="baseAmount"
@@ -84,19 +126,18 @@ const AdminEvents = ({ episodeId }) => {
                 onChange={handleChange}
                 required
                 type="number"
-                sx={{ width: "120px" }}
+                sx={{ width: "48%" }}
                 inputProps={{
-                  min: 0,
                   step: 1,
                 }}
               />
               <Select
-                label="Star"
+                // label="Star"
                 name="starId"
                 value={formData.starId}
                 onChange={handleChange}
                 required
-                sx={{ width: "200px" }}
+                sx={{ width: "50%" }}
               >
                 <MenuItem value="">Select a star</MenuItem>
                 {stars.map((star) => (
@@ -113,7 +154,8 @@ const AdminEvents = ({ episodeId }) => {
                 value={formData.description}
                 onChange={handleChange}
                 required
-                sx={{ width: "444px", marginBottom: "12px" }}
+                fullWidth
+                sx={{ marginBottom: "12px" }}
               />
             </div>
             <Button type="submit" variant="outlined">
@@ -122,16 +164,54 @@ const AdminEvents = ({ episodeId }) => {
           </form>
         )}
       </div>
-      {events.map((event) => {
+
+      <DataGrid
+        rows={events}
+        columns={columns}
+        autoHeight
+        disableColumnMenu
+        disableColumnFilter
+        sortingOrder={["desc", "asc", null]}
+        hideFooterPagination
+        hideFooter
+        checkboxSelection={false}
+        className="bg-white border-0 rounded-0"
+        getRowId={(event) => event._id}
+      />
+
+      <Box sx={{ marginTop: "62px", fontSize: "24px", fontWeight: "600" }}>
+        Rankings for this Episode:
+      </Box>
+      {users.map((user) => {
         return (
-          <div key={event.id} className="eventCard">
-            <div>{event.description}</div>
-            <div>{event.time}</div>
-            <div>{event.baseAmount}</div>
-            <div>
-              {event.star?.firstName} {event.star?.lastName}
-            </div>
-          </div>
+          <Accordion sx={{ margin: "16px 0" }} key={user._id}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                ".MuiAccordionSummary-content": {
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                },
+              }}
+            >
+              <Typography>
+                {user.firstName}:
+                <Box sx={{ fontWeight: 600, position: "inline" }}>
+                  {user.balance}
+                </Box>
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              {user.rankings?.map((ranking) => {
+                return (
+                  <div>
+                    {ranking.rank} - {ranking.starId.firstName}
+                  </div>
+                );
+              })}
+            </AccordionDetails>
+          </Accordion>
         );
       })}
     </div>

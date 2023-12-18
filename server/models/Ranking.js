@@ -15,6 +15,10 @@ const rankingSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  episode: {
+    type: Number,
+    required: true,
+  },
 });
 
 const Ranking = mongoose.model("Ranking", rankingSchema);

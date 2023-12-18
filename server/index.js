@@ -41,5 +41,4 @@ httpServer.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
 
-const routes = listEndpoints(app);
-console.log(routes);
+// const routes = listEndpoints(app);

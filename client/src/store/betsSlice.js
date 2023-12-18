@@ -7,14 +7,27 @@ const initialState = {
   list: [],
 };
 
-export const fetchBets = createAsyncThunk("bets/fetchBets", async () => {
-  const data = await makeRequest.get("/bets");
-
-  return data.bets;
-});
+export const fetchBets = createAsyncThunk(
+  "bets/fetchBets",
+  async ({ episodeId }) => {
+    try {
+      const data = await makeRequest.get("/bets", { episodeId });
+      return data.bets;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  }
+);
 
 export const createBet = createAsyncThunk("bets/createBet", async (betData) => {
   const data = await makeRequest.post("/bets", betData);
+
+  return data.bet;
+});
+
+export const updateBet = createAsyncThunk("bets/updateBet", async (betData) => {
+  const data = await makeRequest.put(`/bets/${betData.betId}`, betData);
 
   return data.bet;
 });
@@ -29,6 +42,10 @@ export const betsSlice = createSlice({
     });
     builder.addCase(createBet.fulfilled, (state, action) => {
       state.list.push(action.payload);
+    });
+    builder.addCase(updateBet.fulfilled, (state, action) => {
+      const index = state.list.findIndex((bet) => bet.id === action.payload.id);
+      state.list[index] = action.payload;
     });
   },
 });

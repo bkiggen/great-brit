@@ -1,15 +1,19 @@
 import User from "../../models/User.js";
 import Session from "../../models/Session.js";
+import Ranking from "../../models/Ranking.js";
+import Episode from "../../models/Episode.js";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 
 const userRoutes = (router) => {
+  // GET USERS
   router.get("/users", async (req, res) => {
     const users = await User.find();
 
     res.json({ users });
   });
 
+  // CREATE USER
   router.post("/users", async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
@@ -32,6 +36,31 @@ const userRoutes = (router) => {
     }
   });
 
+  // Get all users with rankings for a specific episode
+  router.get("/users/usersWithRankings/:episodeId", async (req, res) => {
+    const { episodeId } = req.params;
+    const users = await User.find();
+    const episode = await Episode.findOne({ _id: episodeId });
+
+    const usersWithRankings = [];
+
+    for (let user of users) {
+      const rankings = await Ranking.find({
+        episode: episode.number,
+        userId: user._id,
+      })
+        .populate("starId")
+        .sort({ rank: 1 });
+
+      const userObject = user.toObject(); // Convert to plain object
+      userObject.rankings = rankings; // Add rankings to the plain object
+      usersWithRankings.push(userObject);
+    }
+
+    res.json({ users: usersWithRankings });
+  });
+
+  // Update User
   router.patch("/users", async (req, res) => {
     const { _id, firstName, lastName, email } = req.query;
     const user = await User.findOneAndUpdate(
@@ -65,7 +94,12 @@ const userRoutes = (router) => {
 
       // Respond with user data and session token
       res.json({
-        user,
+        user: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+        },
         sessionToken: session.token,
         expiresAt: session.expiresAt,
       });
@@ -75,6 +109,7 @@ const userRoutes = (router) => {
     }
   });
 
+  // LOG OUT
   router.post("/logout", async (req, res) => {
     const { sessionToken } = req.body;
 

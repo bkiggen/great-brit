@@ -46,7 +46,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute element={<Episodes />} />,
       },
       {
-        path: "/admin",
+        path: "/admin/*",
         element: <ProtectedRoute element={<Admin />} />,
       },
       {
