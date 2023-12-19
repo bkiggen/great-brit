@@ -5,6 +5,7 @@ import User from "../../models/User.js";
 import Star from "../../models/Star.js";
 import Ranking from "../../models/Ranking.js";
 import { authenticateUser } from "./authMiddleware.js";
+import { splitArraysByLength } from "../../helpers/splits.js";
 
 const episodeRoutes = (router) => {
   // Get all episodes
@@ -142,6 +143,47 @@ const episodeRoutes = (router) => {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+
+  router.post("/episodes/:episodeId/calculateDeltas", async (req, res) => {
+    const { episodeId } = req.params;
+    const episode = await Episode.findById(episodeId);
+
+    // get all rankings and calculate deltas
+    const allUsers = await User.find();
+    const eventsForEpisode = await Event.find({ episode: episodeId }).populate(
+      "star"
+    );
+    const split = splitArraysByLength[episode.number];
+
+    const userDeltaPromises = allUsers.map(async (user) => {
+      const rankings = await Ranking.find({
+        userId: user._id,
+        episode: episode.number,
+      }).populate("starId");
+      let userDelta = 0;
+
+      for (const ranking of rankings) {
+        const { rank } = ranking;
+        const multiplier = split[split.length - rank];
+
+        const eventsForStar = eventsForEpisode.filter((event) => {
+          return event.star._id.toString() === ranking.starId._id.toString();
+        });
+        const total = eventsForStar.reduce((acc, event) => {
+          return acc + event.baseAmount;
+        }, 0);
+        const delta = multiplier * total;
+        userDelta += delta;
+      }
+
+      return userDelta;
+    });
+
+    const userDeltas = await Promise.all(userDeltaPromises);
+
+    // get all spec bets and calculate payouts
+    res.json({});
   });
 
   return router;

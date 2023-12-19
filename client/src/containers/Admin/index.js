@@ -2,7 +2,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Tabs, Tab } from "@mui/material";
 
-import Stars from "containers/Admin/Stars";
+import Stars from "containers/Stars";
 import Episodes from "containers/Episodes";
 
 const AdminPage = () => {

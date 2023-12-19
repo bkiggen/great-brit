@@ -6,7 +6,7 @@ import { getInitials } from "helpers/getInitials";
 import { Button, Card, Typography, Box } from "@mui/material";
 import { logoutUser } from "store/sessionSlice";
 import LinkItem from "./LinkItem";
-import ChatWidget from "components/ChatWidget";
+// import ChatWidget from "components/ChatWidget";
 import Tent from "components/icons/Tent";
 import { styles } from "./styles";
 
@@ -87,7 +87,7 @@ const Header = ({ socket }) => {
           )}
         </Box>
       </Card>
-      <ChatWidget socket={socket} />
+      {/* <ChatWidget socket={socket} /> */}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEpisodes } from "store/episodesSlice";
-import { Typography } from "@mui/material";
+import { fetchEpisodes, calculateDeltas } from "store/episodesSlice";
+import { Button, Typography, Box } from "@mui/material";
 
 import BetTable from "containers/Bets/BetTable";
 import CreateEpisode from "./CreateEpisode";
@@ -28,7 +28,7 @@ const Episodes = ({ admin }) => {
       setActive(episodes[episodes.length - 1]);
     }
   }, [episodes]);
-
+  console.log(active);
   return (
     <div className={`episodes ${styles}`}>
       {admin && <CreateEpisode episodes={episodes} />}
@@ -50,7 +50,23 @@ const Episodes = ({ admin }) => {
           })}
         </div>
         <div className="main">
-          <h1>Episode {active?.number}</h1>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <h1>Episode {active?.number}</h1>
+            <Button
+              variant="contained"
+              onClick={() => {
+                dispatch(calculateDeltas({ episodeId: active?._id }));
+              }}
+            >
+              Calculate Deltas
+            </Button>
+          </Box>
           {active && <Events episodeId={active?._id} />}
           {active && (
             <>

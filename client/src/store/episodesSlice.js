@@ -31,6 +31,17 @@ export const createEpisode = createAsyncThunk(
   }
 );
 
+// Thunk to calculate deltas of current episode
+export const calculateDeltas = createAsyncThunk(
+  "episodes/calculateDeltas",
+  async ({ episodeId }) => {
+    const data = await makeRequest.post(
+      `/episodes/${episodeId}/calculateDeltas`
+    );
+    return data.episode;
+  }
+);
+
 export const setCurrentEpisode = createAsyncThunk(
   "episodes/setCurrentEpisode",
   async ({ episodeId }) => {
