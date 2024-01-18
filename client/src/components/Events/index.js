@@ -99,7 +99,12 @@ const AdminEvents = ({ episodeId }) => {
     <div className={`admin-events ${styles}`}>
       <Typography
         variant="h5"
-        sx={{ marginTop: "48px", fontSize: "24px", fontWeight: "500" }}
+        sx={{
+          marginTop: "48px",
+          marginBottom: "20px",
+          fontSize: "24px",
+          fontWeight: "500",
+        }}
       >
         Events:
       </Typography>
@@ -195,12 +200,29 @@ const AdminEvents = ({ episodeId }) => {
                 },
               }}
             >
-              <Typography>
-                {user.firstName}:
+              <Box>
+                <Typography sx={{ fontWeight: 600, position: "inline" }}>
+                  {user.firstName}:
+                </Typography>
+
                 <Box sx={{ fontWeight: 600, position: "inline" }}>
-                  {user.balance}
+                  {/* {user.balance} */}
                 </Box>
-              </Typography>
+              </Box>
+              <Box>
+                {user.delta && (
+                  <Box
+                    sx={{
+                      color: user.delta > 0 ? "green" : "red",
+                      fontWeight: 600,
+                      marginRight: "12px",
+                    }}
+                  >
+                    {user.delta > 0 ? "+" : ""}
+                    {user.delta}
+                  </Box>
+                )}
+              </Box>
             </AccordionSummary>
             <AccordionDetails>
               {user.rankings?.map((ranking) => {

@@ -1,21 +1,41 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Box } from "@mui/material";
+import {
+  fetchUserBalanceHistory,
+  userBalanceHistorySelector,
+} from "store/usersSlice";
 import { bankHistoryStyles } from "./styles";
 
-const mockBankHistory = [123, 344, 555, 233, 111, 0, 125];
-const currentBalance = 125;
-
 const Home = () => {
+  const dispatch = useDispatch();
+  const balanceData = useSelector(userBalanceHistorySelector);
+  // order based on episode number
+
+  useEffect(() => {
+    dispatch(fetchUserBalanceHistory());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className={`episodes ${bankHistoryStyles}`}>
       <div className="bank-item">
-        <div className="episode">Current</div>
-        <div className="value">{currentBalance}</div>
+        <div className="episode">Starting Balance:</div>
+        <div className="value">£100.00</div>
       </div>
-      {mockBankHistory.map((bankItem, idx) => {
+      {balanceData.map((bankItem, idx) => {
         return (
           <div key={bankItem} className="bank-item">
-            <div className="episode">Episode: {idx + 1}</div>
-            <div className="value">{bankItem}</div>
+            <div className="episode">Episode: {bankItem.episode.number}</div>
+            <Box
+              className="value"
+              sx={{ color: bankItem.delta > 0 ? "green" : "red" }}
+            >
+              £{" "}
+              {bankItem.delta.toLocaleString("en-GB", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </Box>
           </div>
         );
       })}

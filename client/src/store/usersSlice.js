@@ -2,15 +2,30 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { makeRequest } from "../helpers/makeRequest";
 
 export const usersSelector = (state) => state.users.list;
+export const userBalanceHistorySelector = (state) =>
+  state.users.userBalanceHistory;
 
 const initialState = {
   list: [],
+  userBalanceHistory: [],
 };
 
 export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
   const data = await makeRequest.get("/users");
   return data.users;
 });
+
+export const fetchUserBalanceHistory = createAsyncThunk(
+  "users/balanceHistory",
+  async (_, { getState }) => {
+    const state = getState();
+
+    const data = await makeRequest.get("/users/balanceHistory", {
+      id: state.session.user.id,
+    });
+    return data.userBalanceHistory;
+  }
+);
 
 export const fetchUsersWithRankingsByEpisode = createAsyncThunk(
   "users/fetchUsersWithRankingsByEpisode",
@@ -51,6 +66,18 @@ export const usersSlice = createSlice({
       state.loading = false;
     });
     builder.addCase(registerUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message;
+    });
+    builder.addCase(fetchUserBalanceHistory.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchUserBalanceHistory.fulfilled, (state, action) => {
+      state.userBalanceHistory = action.payload;
+      state.loading = false;
+    });
+    builder.addCase(fetchUserBalanceHistory.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message;
     });

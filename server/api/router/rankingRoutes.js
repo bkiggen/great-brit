@@ -50,7 +50,7 @@ const rankingsRoutes = (router) => {
       const userId = session.userId;
 
       // Remove existing rankings for the user
-      await Ranking.deleteMany({ userId });
+      await Ranking.deleteMany({ userId, episode: episode.number });
 
       // Create new rankings for the user
       const rankingPromises = rankings.map(async (rankedStar) => {
@@ -67,10 +67,13 @@ const rankingsRoutes = (router) => {
       });
 
       const newRankings = await Promise.all(rankingPromises);
-      const savedRankings = newRankings.filter((ranking) => ranking !== null);
+      // const savedRankings = newRankings.filter((ranking) => ranking !== null);
 
       // Populate the related Star data for each ranking
-      const populatedRankings = await Ranking.find({ userId })
+      const populatedRankings = await Ranking.find({
+        userId,
+        episode: episode.number,
+      })
         .populate("starId")
         .sort({ rank: 1 });
 

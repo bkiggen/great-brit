@@ -1,6 +1,7 @@
 import User from "../../models/User.js";
 import Session from "../../models/Session.js";
 import Ranking from "../../models/Ranking.js";
+import UserDelta from "../../models/UserDelta.js";
 import Episode from "../../models/Episode.js";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
@@ -11,6 +12,17 @@ const userRoutes = (router) => {
     const users = await User.find();
 
     res.json({ users });
+  });
+
+  // GET USERS BALANCE DATA
+  router.get("/users/balanceHistory", async (req, res) => {
+    const { id } = req.query;
+
+    const userBalanceHistory = await UserDelta.find({ user: id })
+      .populate("episode")
+      .sort({ episode: 1 });
+
+    res.json({ userBalanceHistory });
   });
 
   // CREATE USER
@@ -53,8 +65,16 @@ const userRoutes = (router) => {
         .sort({ rank: 1 });
 
       const userObject = user.toObject(); // Convert to plain object
+
       userObject.rankings = rankings; // Add rankings to the plain object
       usersWithRankings.push(userObject);
+
+      const episodeDelta = await UserDelta.findOne({
+        episode: episodeId,
+        user: user._id,
+      });
+
+      userObject.delta = episodeDelta ? episodeDelta.delta : null;
     }
 
     res.json({ users: usersWithRankings });

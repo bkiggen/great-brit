@@ -10,7 +10,10 @@ const betRoutes = (router) => {
   router.get("/bets", authenticateUser, async (req, res) => {
     try {
       const episodeParam = req.query.episodeId;
-      const episode = await Episode.findOne({ _id: episodeParam });
+      let episode = {};
+      if (episodeParam !== "undefined") {
+        episode = await Episode.findOne({ _id: episodeParam });
+      }
       const latestEpisode = await Episode.findOne().sort({ number: -1 });
 
       const bets = await Bet.find({
@@ -83,6 +86,25 @@ const betRoutes = (router) => {
       const populatedBet = await updatedBet.populate("better eligibleUsers");
 
       res.json({ bet: populatedBet });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  router.delete("/bets/:betId", authenticateUser, async (req, res) => {
+    const betId = req.params.betId;
+
+    try {
+      const bet = await Bet.findOne({ id: betId });
+
+      if (!bet) {
+        return res.status(404).json({ message: "Bet not found" });
+      }
+
+      await Bet.deleteOne({ id: betId });
+
+      res.json({ message: "Bet deleted successfully" });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });

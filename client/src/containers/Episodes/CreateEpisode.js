@@ -14,7 +14,7 @@ const CreateEpisode = ({ episodes }) => {
   };
 
   return (
-    <div
+    <Box
       sx={{
         display: "flex",
         alignItems: "center",
@@ -23,7 +23,6 @@ const CreateEpisode = ({ episodes }) => {
         borderRadius: "4px",
         padding: "24px",
         boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.05)",
-        marginTop: "214px",
       }}
     >
       <Box>
@@ -34,12 +33,16 @@ const CreateEpisode = ({ episodes }) => {
           onChange={(e) => setNewEpisodeNumber(e.target.value)}
           sx={{ marginRight: "12px" }}
         />
-        <Button variant="outlined" onClick={handleCreateEpisode}>
+        <Button
+          variant="outlined"
+          onClick={handleCreateEpisode}
+          sx={{ height: "56px" }}
+        >
           Create Episode
         </Button>
       </Box>
       <SetCurrentEpisode episodes={episodes} />
-    </div>
+    </Box>
   );
 };
 

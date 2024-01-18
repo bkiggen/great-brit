@@ -4,6 +4,8 @@ import Event from "../../models/Event.js";
 import User from "../../models/User.js";
 import Star from "../../models/Star.js";
 import Ranking from "../../models/Ranking.js";
+import Bet from "../../models/Bet.js";
+import UserDelta from "../../models/UserDelta.js";
 import { authenticateUser } from "./authMiddleware.js";
 import { splitArraysByLength } from "../../helpers/splits.js";
 
@@ -157,11 +159,33 @@ const episodeRoutes = (router) => {
     const split = splitArraysByLength[episode.number];
 
     const userDeltaPromises = allUsers.map(async (user) => {
+      let totalDelta = 0;
+
       const rankings = await Ranking.find({
         userId: user._id,
         episode: episode.number,
       }).populate("starId");
-      let userDelta = 0;
+
+      const userBets = await Bet.find({
+        $or: [{ better: user._id }, { eligibleUsers: user._id }],
+        episode: episode.number,
+      });
+
+      for (const userBet of userBets) {
+        const { better, won, maxLose, odds, eligibleUsers } = userBet;
+        const isUserBetter = better._id.toString() === user._id.toString();
+
+        let deltaChange = 0;
+        if (isUserBetter) {
+          deltaChange = won
+            ? maxLose * eligibleUsers.length * (1 / odds)
+            : -maxLose * eligibleUsers.length;
+        } else {
+          deltaChange = won ? -maxLose * (1 / odds) : maxLose;
+        }
+
+        totalDelta += deltaChange;
+      }
 
       for (const ranking of rankings) {
         const { rank } = ranking;
@@ -174,15 +198,32 @@ const episodeRoutes = (router) => {
           return acc + event.baseAmount;
         }, 0);
         const delta = multiplier * total;
-        userDelta += delta;
+        totalDelta += delta;
       }
 
-      return userDelta;
+      const userDelta = {
+        user: user._id,
+        episode: episodeId,
+        delta: totalDelta,
+      };
+
+      const filter = {
+        user: user._id,
+        episode: episodeId,
+      };
+
+      const options = {
+        upsert: true, // Create a new document if not found
+        new: true, // Return the updated document
+      };
+
+      await UserDelta.findOneAndUpdate(filter, userDelta, options);
+
+      return totalDelta;
     });
 
-    const userDeltas = await Promise.all(userDeltaPromises);
+    await Promise.all(userDeltaPromises);
 
-    // get all spec bets and calculate payouts
     res.json({});
   });
 

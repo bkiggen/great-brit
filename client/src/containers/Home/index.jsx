@@ -1,4 +1,7 @@
 import React from "react";
+import { useSelector } from "react-redux";
+import { userBalanceHistorySelector } from "store/usersSlice";
+
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -9,6 +12,13 @@ import BankBalance from "./BankBalance";
 import { styles } from "./styles";
 
 const Home = () => {
+  const balanceData = useSelector(userBalanceHistorySelector);
+  // add all balanceData Deltas together to get current balance
+  const allDeltas = balanceData.reduce((acc, curr) => {
+    return acc + curr.delta;
+  }, 0);
+  const currentBalance = 100 + allDeltas;
+
   return (
     <div className={`episodes ${styles}`}>
       <Accordion>
@@ -23,7 +33,18 @@ const Home = () => {
           }}
         >
           <Typography>Bank Account</Typography>
-          <Typography sx={{ marginRight: "18px" }}>$125</Typography>
+          <Typography
+            sx={{
+              marginRight: "18px",
+              color: currentBalance > 0 ? "green" : "red",
+            }}
+          >
+            £
+            {currentBalance.toLocaleString("en-GB", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </Typography>
         </AccordionSummary>
         <AccordionDetails>
           <BankBalance />
@@ -41,7 +62,7 @@ const Home = () => {
           }}
         >
           <Typography>My Bets</Typography>
-          <Typography sx={{ marginRight: "18px" }}>$125</Typography>
+          {/* <Typography sx={{ marginRight: "18px" }}>$125</Typography> */}
         </AccordionSummary>
         <AccordionDetails>
           <BetTable />

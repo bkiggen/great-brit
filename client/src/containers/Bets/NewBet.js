@@ -32,11 +32,12 @@ const Bets = () => {
   const handleSubmit = () => {
     const betData = {
       description,
-      odds: parseFloat(selectedOdds),
+      odds: selectedOdds[0] / selectedOdds[1],
       maxLose: parseFloat(maxLose),
       eligibleUsers: selectedUsers,
       maxWin,
     };
+
     dispatch(createBet(betData));
     setDescription("");
     setSelectedUsers([]);
@@ -92,7 +93,9 @@ const Bets = () => {
             variant="outlined"
             sx={{ minWidth: "100px", marginRight: "12px" }}
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((odds) => (
+            {[
+              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+            ].map((odds) => (
               <MenuItem key={odds} value={odds}>
                 {odds}
               </MenuItem>

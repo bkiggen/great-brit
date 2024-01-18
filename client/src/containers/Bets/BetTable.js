@@ -4,7 +4,8 @@ import { sessionSelector } from "store";
 import { Box, Button, Tooltip } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { fetchBets } from "store/betsSlice";
-import { betsSelector, updateBet } from "store/betsSlice";
+import { betsSelector, updateBet, deleteBet } from "store/betsSlice";
+import { getLowestFraction } from "helpers/getLowestFraction";
 
 const Bets = ({ episodeId, readOnly = false, admin }) => {
   const dispatch = useDispatch();
@@ -59,7 +60,16 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
         return <div>{params.row.better.firstName}</div>;
       },
     },
-    { field: "odds", headerName: "Odds", flex: 1 },
+    {
+      field: "odds",
+      headerName: "Odds",
+      flex: 1,
+      renderCell: (params) => {
+        const decimal = params.row.odds;
+
+        return getLowestFraction(decimal);
+      },
+    },
     { field: "maxLose", headerName: "Max Bet", flex: 1 },
     {
       field: "eligibleUsers",
@@ -109,6 +119,31 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
         );
       },
     },
+    ...(admin
+      ? [
+          {
+            field: "delete",
+            headerName: "Delete",
+            flex: 1,
+            renderCell: (params) => {
+              return (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => {
+                    if (admin) {
+                      dispatch(deleteBet(params.row.id));
+                    }
+                  }}
+                >
+                  X
+                </Button>
+              );
+            },
+          },
+        ]
+      : []),
   ];
 
   useEffect(() => {
@@ -116,7 +151,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
   }, [episodeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Box style={{ marginTop: "80px", background: "white" }}>
+    <Box style={{ marginTop: "20px", background: "white" }}>
       <DataGrid
         rows={bets}
         columns={columns}
