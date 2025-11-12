@@ -2,7 +2,7 @@
 nixPkgs = ['nodejs_20', 'openssl']
 
 [phases.install]
-cmds = ['cd server && npm install']
+cmds = ['cd server && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npm install']
 
 [start]
 cmd = 'cd server && npx prisma generate && node index.js'
