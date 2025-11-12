@@ -13,15 +13,36 @@ import cors from "cors";
 export const prisma = new PrismaClient();
 
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
+
+// CORS configuration - allow both local and production domains
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://great-brit.up.railway.app", // Update this with your Railway frontend URL
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
+    credentials: true,
   },
 });
 
