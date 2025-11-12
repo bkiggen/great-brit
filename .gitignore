@@ -15,6 +15,11 @@ client/node_modules
 !/client/
 !/server/
 
+# Unignore Railway deployment files
+!/railway.json
+!/nixpacks.toml
+!/RAILWAY_DEPLOYMENT.md
+
 # testing
 /coverage
 
