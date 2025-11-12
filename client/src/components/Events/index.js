@@ -44,11 +44,15 @@ const AdminEvents = ({ episodeId }) => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchUsersWithRankingsByEpisode(episodeId));
+    if (episodeId) {
+      dispatch(fetchUsersWithRankingsByEpisode(episodeId));
+    }
   }, [episodeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    dispatch(fetchEventsByEpisode(episodeId));
+    if (episodeId) {
+      dispatch(fetchEventsByEpisode(episodeId));
+    }
   }, [episodeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (e) => {

@@ -72,31 +72,41 @@ const userRoutes = (router) => {
   // Get all users with rankings for a specific episode
   router.get("/users/usersWithRankings/:episodeId", authenticateUser, async (req, res) => {
     const { episodeId } = req.params;
-    const episodeNumber = parseInt(episodeId);
+    const episodeNumber = parseInt(episodeId, 10);
 
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        rankings: {
-          where: { episode: episodeNumber },
-          include: { star: true },
-          orderBy: { rank: "asc" },
+    // Validate episode number
+    if (isNaN(episodeNumber)) {
+      return res.status(400).json({ message: "Invalid episode ID" });
+    }
+
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          rankings: {
+            where: { episode: episodeNumber },
+            include: { star: true },
+            orderBy: { rank: "asc" },
+          },
+          userDeltas: {
+            where: { episodeId: episodeNumber },
+          },
         },
-        userDeltas: {
-          where: { episodeId: episodeNumber },
-        },
-      },
-    });
+      });
 
-    const usersWithRankings = users.map((user) => ({
-      ...user,
-      delta: user.userDeltas[0]?.delta || null,
-    }));
+      const usersWithRankings = users.map((user) => ({
+        ...user,
+        delta: user.userDeltas[0]?.delta || null,
+      }));
 
-    res.json({ users: usersWithRankings });
+      res.json({ users: usersWithRankings });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   // Update User
