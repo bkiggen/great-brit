@@ -1,8 +1,9 @@
-import Room from "../../models/Room.js";
+import { prisma } from "../../index.js";
+import { authenticateUser } from "./authMiddleware.js";
 
 const roomRoutes = (router) => {
-  router.get("/rooms", async (req, res) => {
-    const rooms = await Room.find();
+  router.get("/rooms", authenticateUser, async (req, res) => {
+    const rooms = await prisma.room.findMany();
     res.json({ rooms });
   });
 

@@ -1,15 +1,12 @@
-import mongoose from "mongoose";
-import Event from "../../models/Event.js";
-import Episode from "../../models/Episode.js"; // Import Episode model
-import { v4 as uuidv4 } from "uuid";
-import Star from "../../models/Star.js";
-import Session from "../../models/Session.js";
+import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
 
 const eventRoutes = (router) => {
   router.get("/events", authenticateUser, async (req, res) => {
     try {
-      const events = await Event.find().populate("star");
+      const events = await prisma.event.findMany({
+        include: { star: true },
+      });
 
       res.json({ events });
     } catch (error) {
@@ -19,48 +16,37 @@ const eventRoutes = (router) => {
   });
 
   router.post("/events", authenticateUser, async (req, res) => {
-    const { description, time, baseAmount, starId, episodeId } = req.body; // Add episodeId to request body
-    const sessionToken = req.headers.authorization.split(" ")[1];
-    const stars = await Star.find({}, "_id");
+    const { description, time, baseAmount, starId, episodeId } = req.body;
 
     try {
-      const session = await Session.findOne({ token: sessionToken });
-
-      if (!session) {
-        return res.status(401).json({ message: "Unauthorized" });
+      if (!starId) {
+        return res.status(400).json({ message: "Star ID required" });
       }
 
-      if (!mongoose.Types.ObjectId.isValid(starId)) {
-        return res.status(400).json({ message: "Invalid starId" });
-      }
+      const parsedStarId = parseInt(starId);
+      const parsedEpisodeId = episodeId ? parseInt(episodeId) : null;
 
-      const star = await Star.findOne({ _id: starId });
+      // Check if star exists
+      const star = await prisma.star.findUnique({
+        where: { id: parsedStarId },
+      });
 
       if (!star) {
         return res.status(404).json({ message: "Star not found" });
       }
 
-      const newEvent = new Event({
-        description,
-        time,
-        baseAmount,
-        star: starId,
+      const newEvent = await prisma.event.create({
+        data: {
+          description,
+          time,
+          baseAmount,
+          starId: parsedStarId,
+          episodeId: parsedEpisodeId,
+        },
+        include: { star: true },
       });
 
-      const savedEvent = await newEvent.save();
-
-      // Add the event to the associated episode
-      if (episodeId) {
-        const episode = await Episode.findOne({ _id: episodeId });
-
-        if (episode) {
-          episode.events.push(savedEvent._id);
-          await episode.save();
-        }
-      }
-
-      const out = await savedEvent.populate("star");
-      res.status(201).json({ event: out });
+      res.status(201).json({ event: newEvent });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });

@@ -1,24 +1,31 @@
-import Bet from "../../models/Bet.js";
-import { v4 as uuidv4 } from "uuid";
-import User from "../../models/User.js";
-import Session from "../../models/Session.js";
+import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
-import Episode from "../../models/Episode.js";
 
 const betRoutes = (router) => {
   // GET all bets
   router.get("/bets", authenticateUser, async (req, res) => {
     try {
       const episodeParam = req.query.episodeId;
-      let episode = {};
-      if (episodeParam !== "undefined") {
-        episode = await Episode.findOne({ _id: episodeParam });
-      }
-      const latestEpisode = await Episode.findOne().sort({ number: -1 });
+      let episodeNumber;
 
-      const bets = await Bet.find({
-        episode: episode.number || latestEpisode.number,
-      }).populate("better eligibleUsers");
+      if (episodeParam && episodeParam !== "undefined") {
+        episodeNumber = parseInt(episodeParam);
+      } else {
+        const latestEpisode = await prisma.episode.findFirst({
+          orderBy: { number: "desc" },
+        });
+        episodeNumber = latestEpisode?.number;
+      }
+
+      const bets = await prisma.bet.findMany({
+        where: { episode: episodeNumber },
+        include: {
+          better: true,
+          eligibleUsers: true,
+          acceptedUsers: true,
+        },
+      });
+
       res.json({ bets });
     } catch (error) {
       console.error(error);
@@ -30,38 +37,30 @@ const betRoutes = (router) => {
   router.post("/bets", authenticateUser, async (req, res) => {
     const { description, odds, maxLose, eligibleUsers } = req.body;
 
-    const sessionToken = req.headers.authorization.split(" ")[1];
-
-    const episode = await Episode.findOne().sort({ number: -1 });
-
     try {
-      const session = await Session.findOne({ token: sessionToken });
-      const sessionUser = await User.findOne({ _id: session.userId });
-
-      if (!session) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const userPromises = eligibleUsers.map(async (userId) => {
-        const user = await User.findOne({ _id: userId });
-        return user ? user.toObject() : null;
+      const latestEpisode = await prisma.episode.findFirst({
+        orderBy: { number: "desc" },
       });
 
-      const users = await Promise.all(userPromises);
-
-      const newBet = new Bet({
-        id: uuidv4(),
-        description,
-        odds,
-        better: sessionUser,
-        maxLose,
-        eligibleUsers: users,
-        episode: episode.number,
+      const newBet = await prisma.bet.create({
+        data: {
+          description,
+          odds,
+          maxLose,
+          betterId: req.sessionUser.id,
+          episode: latestEpisode.number,
+          eligibleUsers: {
+            connect: eligibleUsers.map((userId) => ({ id: userId })),
+          },
+        },
+        include: {
+          better: true,
+          eligibleUsers: true,
+          acceptedUsers: true,
+        },
       });
 
-      const savedBet = await newBet.save();
-      const populatedBet = await savedBet.populate("better eligibleUsers");
-      res.status(201).json({ bet: populatedBet });
+      res.status(201).json({ bet: newBet });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
@@ -69,43 +68,43 @@ const betRoutes = (router) => {
   });
 
   router.put("/bets/:betId", authenticateUser, async (req, res) => {
-    const betId = req.params.betId;
+    const betId = parseInt(req.params.betId);
     const { won } = req.body;
 
     try {
-      const bet = await Bet.findOne({ id: betId });
+      const updatedBet = await prisma.bet.update({
+        where: { id: betId },
+        data: { won },
+        include: {
+          better: true,
+          eligibleUsers: true,
+          acceptedUsers: true,
+        },
+      });
 
-      if (!bet) {
+      res.json({ bet: updatedBet });
+    } catch (error) {
+      if (error.code === "P2025") {
         return res.status(404).json({ message: "Bet not found" });
       }
-
-      bet.won = won;
-
-      const updatedBet = await bet.save();
-
-      const populatedBet = await updatedBet.populate("better eligibleUsers");
-
-      res.json({ bet: populatedBet });
-    } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
 
   router.delete("/bets/:betId", authenticateUser, async (req, res) => {
-    const betId = req.params.betId;
+    const betId = parseInt(req.params.betId);
 
     try {
-      const bet = await Bet.findOne({ id: betId });
-
-      if (!bet) {
-        return res.status(404).json({ message: "Bet not found" });
-      }
-
-      await Bet.deleteOne({ id: betId });
+      await prisma.bet.delete({
+        where: { id: betId },
+      });
 
       res.json({ message: "Bet deleted successfully" });
     } catch (error) {
+      if (error.code === "P2025") {
+        return res.status(404).json({ message: "Bet not found" });
+      }
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
     }

@@ -1,0 +1,170 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - Authentication & user account data
+model User {
+  id            String      @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String      @unique
+  password      String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  sessions      Session[]
+  bets          Bet[]       @relation("BetCreator")
+  eligibleBets  Bet[]       @relation("EligibleUsers")
+  acceptedBets  Bet[]       @relation("AcceptedUsers")
+  rankings      Ranking[]
+  userDeltas    UserDelta[]
+
+  @@map("users")
+}
+
+// Session model - Session management for authentication
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+// Star model - Celebrity/character data for the betting/ranking game
+model Star {
+  id        Int       @id @default(autoincrement())
+  firstName String
+  lastName  String
+  bio       String?   @db.Text
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  // Relations
+  rankings  Ranking[]
+  events    Event[]
+
+  @@map("stars")
+}
+
+// Episode model - Game episodes/rounds
+model Episode {
+  number     Int       @id
+  hasAired   Boolean   @default(false)
+  current    Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  // Relations
+  events     Event[]
+  rankings   Ranking[]
+  bets       Bet[]
+  userDeltas UserDelta[]
+
+  @@map("episodes")
+}
+
+// Event model - Events within episodes
+model Event {
+  id          Int      @id @default(autoincrement())
+  description String   @db.Text
+  time        String?
+  baseAmount  Float
+  starId      Int?
+  episodeId   Int?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  star    Star?    @relation(fields: [starId], references: [id], onDelete: SetNull)
+  episode Episode? @relation(fields: [episodeId], references: [number], onDelete: SetNull)
+
+  @@index([episodeId])
+  @@index([starId])
+  @@map("events")
+}
+
+// Ranking model - User rankings of stars per episode
+model Ranking {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  starId    Int
+  rank      Int
+  episode   Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  star        Star    @relation(fields: [starId], references: [id], onDelete: Cascade)
+  episodeRef  Episode @relation(fields: [episode], references: [number], onDelete: Cascade)
+
+  @@unique([userId, starId, episode])
+  @@index([userId, episode])
+  @@index([episode])
+  @@map("rankings")
+}
+
+// Bet model - User bets placed in episodes
+model Bet {
+  id          Int      @id @default(autoincrement())
+  description String   @db.Text
+  betterId    String
+  odds        Float
+  maxLose     Float
+  episode     Int
+  won         Boolean?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  better          User    @relation("BetCreator", fields: [betterId], references: [id], onDelete: Cascade)
+  episodeRef      Episode @relation(fields: [episode], references: [number], onDelete: Cascade)
+  eligibleUsers   User[]  @relation("EligibleUsers")
+  acceptedUsers   User[]  @relation("AcceptedUsers")
+
+  @@index([betterId])
+  @@index([episode])
+  @@map("bets")
+}
+
+// UserDelta model - Score/balance changes per episode
+model UserDelta {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  episodeId Int
+  delta     Float
+  createdAt DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episode Episode @relation(fields: [episodeId], references: [number], onDelete: Cascade)
+
+  @@unique([userId, episodeId])
+  @@index([userId])
+  @@index([episodeId])
+  @@map("user_deltas")
+}
+
+// Room model - Chat/messaging rooms
+model Room {
+  id        Int      @id @default(autoincrement())
+  roomId    String   @unique
+  name      String
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@map("rooms")
+}

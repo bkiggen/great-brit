@@ -5,7 +5,7 @@ export const fetchFromApi = async (url, method, body) => {
   const { sessionToken } = state.session;
 
   // Construct the URL with query parameters
-  const fullUrl = new URL(`http://localhost:4000${url}`);
+  const fullUrl = new URL(`http://localhost:8000${url}`);
 
   if (method === "GET" && body) {
     // Convert the query parameters object into URL search parameters

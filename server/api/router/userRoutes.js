@@ -1,26 +1,39 @@
-import User from "../../models/User.js";
-import Session from "../../models/Session.js";
-import Ranking from "../../models/Ranking.js";
-import UserDelta from "../../models/UserDelta.js";
-import Episode from "../../models/Episode.js";
+import { prisma } from "../../index.js";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
+import { authenticateUser } from "./authMiddleware.js";
 
 const userRoutes = (router) => {
   // GET USERS
-  router.get("/users", async (req, res) => {
-    const users = await User.find();
+  router.get("/users", authenticateUser, async (req, res) => {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
     res.json({ users });
   });
 
   // GET USERS BALANCE DATA
-  router.get("/users/balanceHistory", async (req, res) => {
+  router.get("/users/balanceHistory", authenticateUser, async (req, res) => {
     const { id } = req.query;
 
-    const userBalanceHistory = await UserDelta.find({ user: id })
-      .populate("episode")
-      .sort({ episode: 1 });
+    // Only allow users to access their own balance history
+    if (id && id !== req.sessionUser.id) {
+      return res.status(403).json({ message: "Forbidden: Cannot access other users' data" });
+    }
+
+    const userBalanceHistory = await prisma.userDelta.findMany({
+      where: { userId: id || req.sessionUser.id },
+      include: { episode: true },
+      orderBy: { episodeId: "asc" },
+    });
 
     res.json({ userBalanceHistory });
   });
@@ -32,14 +45,22 @@ const userRoutes = (router) => {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const user = new User({
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
+      const user = await prisma.user.create({
+        data: {
+          firstName,
+          lastName,
+          email,
+          password: hashedPassword,
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
-
-      await user.save();
 
       res.json({ user });
     } catch (error) {
@@ -49,44 +70,56 @@ const userRoutes = (router) => {
   });
 
   // Get all users with rankings for a specific episode
-  router.get("/users/usersWithRankings/:episodeId", async (req, res) => {
+  router.get("/users/usersWithRankings/:episodeId", authenticateUser, async (req, res) => {
     const { episodeId } = req.params;
-    const users = await User.find();
-    const episode = await Episode.findOne({ _id: episodeId });
+    const episodeNumber = parseInt(episodeId);
 
-    const usersWithRankings = [];
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        rankings: {
+          where: { episode: episodeNumber },
+          include: { star: true },
+          orderBy: { rank: "asc" },
+        },
+        userDeltas: {
+          where: { episodeId: episodeNumber },
+        },
+      },
+    });
 
-    for (let user of users) {
-      const rankings = await Ranking.find({
-        episode: episode.number,
-        userId: user._id,
-      })
-        .populate("starId")
-        .sort({ rank: 1 });
-
-      const userObject = user.toObject(); // Convert to plain object
-
-      userObject.rankings = rankings; // Add rankings to the plain object
-      usersWithRankings.push(userObject);
-
-      const episodeDelta = await UserDelta.findOne({
-        episode: episodeId,
-        user: user._id,
-      });
-
-      userObject.delta = episodeDelta ? episodeDelta.delta : null;
-    }
+    const usersWithRankings = users.map((user) => ({
+      ...user,
+      delta: user.userDeltas[0]?.delta || null,
+    }));
 
     res.json({ users: usersWithRankings });
   });
 
   // Update User
-  router.patch("/users", async (req, res) => {
+  router.patch("/users", authenticateUser, async (req, res) => {
     const { _id, firstName, lastName, email } = req.query;
-    const user = await User.findOneAndUpdate(
-      { _id },
-      { firstName, lastName, email }
-    );
+
+    // Only allow users to update their own profile
+    if (_id !== req.sessionUser.id) {
+      return res.status(403).json({ message: "Forbidden: Cannot update other users' profiles" });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: _id },
+      data: { firstName, lastName, email },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
     res.json({ user });
   });
@@ -95,7 +128,10 @@ const userRoutes = (router) => {
     const { email, password } = req.body;
 
     try {
-      const user = await User.findOne({ email });
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+
       if (!user) {
         return res.status(401).json({ message: "User not found" });
       }
@@ -106,16 +142,18 @@ const userRoutes = (router) => {
         return res.status(401).json({ message: "Invalid password" });
       }
 
-      const session = new Session({
-        userId: user._id,
-        token: uuidv4(),
+      const session = await prisma.session.create({
+        data: {
+          userId: user.id,
+          token: uuidv4(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        },
       });
-      await session.save();
 
       // Respond with user data and session token
       res.json({
         user: {
-          id: user._id,
+          id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
@@ -135,8 +173,8 @@ const userRoutes = (router) => {
 
     try {
       // Find and remove the session entry based on the provided token
-      const deletedSession = await Session.findOneAndDelete({
-        token: sessionToken,
+      const deletedSession = await prisma.session.delete({
+        where: { token: sessionToken },
       });
 
       if (!deletedSession) {

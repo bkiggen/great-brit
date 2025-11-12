@@ -1,8 +1,5 @@
-import Star from "../../models/Star.js";
-import Ranking from "../../models/Ranking.js";
-import Session from "../../models/Session.js";
+import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
-import Episode from "../../models/Episode.js";
 
 const rankingsRoutes = (router) => {
   // GET ALL RANKINGS
@@ -10,21 +7,20 @@ const rankingsRoutes = (router) => {
     try {
       const episodeId = req.query.episodeId;
 
-      const sessionToken = req.headers.authorization.split(" ")[1];
-      const session = await Session.findOne({ token: sessionToken });
-
-      if (!session || !episodeId) {
-        return res.status(401).json({ message: "Unauthorized" });
+      if (!episodeId) {
+        return res.status(400).json({ message: "Episode ID required" });
       }
 
-      const episode = await Episode.findOne({ _id: episodeId });
+      const episodeNumber = parseInt(episodeId);
 
-      let userRankings = await Ranking.find({
-        userId: session.userId,
-        episode: episode.number,
-      })
-        .populate("starId") // Populate the related Star data
-        .sort({ rank: 1 }); // Sort the rankings by rank
+      let userRankings = await prisma.ranking.findMany({
+        where: {
+          userId: req.sessionUser.id,
+          episode: episodeNumber,
+        },
+        include: { star: true },
+        orderBy: { rank: "asc" },
+      });
 
       res.json({ rankings: userRankings });
     } catch (error) {
@@ -35,47 +31,44 @@ const rankingsRoutes = (router) => {
 
   // UPDATE RANKINGS FOR USER
   router.post("/rankings", authenticateUser, async (req, res) => {
-    const sessionToken = req.headers.authorization.split(" ")[1];
     const { rankings } = req.body;
 
     try {
-      const session = await Session.findOne({ token: sessionToken });
-
-      if (!session) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      const episode = await Episode.findOne().sort({ number: -1 });
-
-      const userId = session.userId;
-
-      // Remove existing rankings for the user
-      await Ranking.deleteMany({ userId, episode: episode.number });
-
-      // Create new rankings for the user
-      const rankingPromises = rankings.map(async (rankedStar) => {
-        const star = await Star.findOne({ _id: rankedStar.starId });
-        if (!star) {
-          return null;
-        }
-        return new Ranking({
-          userId,
-          starId: star._id,
-          rank: rankedStar.rank,
-          episode: episode.number,
-        }).save();
+      const latestEpisode = await prisma.episode.findFirst({
+        orderBy: { number: "desc" },
       });
 
-      const newRankings = await Promise.all(rankingPromises);
-      // const savedRankings = newRankings.filter((ranking) => ranking !== null);
+      const userId = req.sessionUser.id;
 
-      // Populate the related Star data for each ranking
-      const populatedRankings = await Ranking.find({
+      // Remove existing rankings for the user in this episode
+      await prisma.ranking.deleteMany({
+        where: {
+          userId,
+          episode: latestEpisode.number,
+        },
+      });
+
+      // Create new rankings for the user
+      const rankingsToCreate = rankings.map((rankedStar) => ({
         userId,
-        episode: episode.number,
-      })
-        .populate("starId")
-        .sort({ rank: 1 });
+        starId: parseInt(rankedStar.starId),
+        rank: rankedStar.rank,
+        episode: latestEpisode.number,
+      }));
+
+      await prisma.ranking.createMany({
+        data: rankingsToCreate,
+      });
+
+      // Fetch the created rankings with star data
+      const populatedRankings = await prisma.ranking.findMany({
+        where: {
+          userId,
+          episode: latestEpisode.number,
+        },
+        include: { star: true },
+        orderBy: { rank: "asc" },
+      });
 
       res.status(201).json({ rankings: populatedRankings });
     } catch (error) {

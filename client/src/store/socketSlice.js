@@ -8,7 +8,7 @@ const initialState = {
 export const initializeSocket = createAsyncThunk(
   "socket/initialize",
   async (_, { dispatch }) => {
-    const socket = io("http://localhost:4000");
+    const socket = io("http://localhost:8000");
 
     socket.io.on("new-room-created-from-server", (message) => {
       dispatch(receiveMessage(message));

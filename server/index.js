@@ -5,16 +5,15 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 import sockets from "./socket/index.js";
-import mongoose from "mongoose";
+import { PrismaClient } from "@prisma/client";
 import router from "./api/router/index.js";
 import cors from "cors";
 
-await mongoose.connect(
-  "mongodb+srv://kiggen:bens12@cluster0.wpsgkxa.mongodb.net/?retryWrites=true&w=majority"
-);
+// Initialize Prisma Client
+export const prisma = new PrismaClient();
 
 const app = express();
-const PORT = 4000;
+const PORT = 8000;
 
 app.use(express.json());
 app.use(cors());
@@ -39,6 +38,17 @@ io.on("connection", sockets);
 
 httpServer.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
+});
+
+// Graceful shutdown - disconnect Prisma when process exits
+process.on("SIGINT", async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  await prisma.$disconnect();
+  process.exit(0);
 });
 
 // const routes = listEndpoints(app);
