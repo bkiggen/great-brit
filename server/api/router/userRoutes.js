@@ -40,7 +40,13 @@ const userRoutes = (router) => {
 
   // CREATE USER
   router.post("/users", async (req, res) => {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, secret } = req.body;
+
+    // Validate the secret code
+    const requiredSecret = process.env.NEW_USER_SECRET;
+    if (!secret || secret !== requiredSecret) {
+      return res.status(403).json({ message: "Invalid or missing secret code" });
+    }
 
     try {
       const hashedPassword = await bcrypt.hash(password, 10);

@@ -20,6 +20,7 @@ const LoginBox = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [secret, setSecret] = useState("");
   const [snackOpen, setSnackOpen] = useState("");
   const [isLogin, setIsLogin] = useState(true);
 
@@ -28,7 +29,7 @@ const LoginBox = () => {
   const session = useSelector(sessionSelector);
 
   const handleRegister = async () => {
-    dispatch(registerUser({ email, password, firstName, lastName }));
+    dispatch(registerUser({ email, password, firstName, lastName, secret }));
 
     navigate("/");
   };
@@ -72,6 +73,11 @@ const LoginBox = () => {
                 {...inputProps}
                 placeholder="Last Name"
                 onChange={(e) => setLastName(e.target.value)}
+              />
+              <Input
+                {...inputProps}
+                placeholder="Secret Code"
+                onChange={(e) => setSecret(e.target.value)}
               />
             </>
           )}
