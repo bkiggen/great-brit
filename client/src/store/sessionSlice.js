@@ -11,7 +11,12 @@ export const loginUser = createAsyncThunk(
   "session/loginUser",
   async (credentials, { getState }) => {
     try {
-      const response = await fetch("http://localhost:8000/login", {
+      // In production, use same origin; in development, use localhost:8000
+      const baseUrl = process.env.NODE_ENV === 'production'
+        ? window.location.origin
+        : (process.env.REACT_APP_API_URL || 'http://localhost:8000');
+
+      const response = await fetch(`${baseUrl}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

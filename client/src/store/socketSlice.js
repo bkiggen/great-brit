@@ -8,7 +8,11 @@ const initialState = {
 export const initializeSocket = createAsyncThunk(
   "socket/initialize",
   async (_, { dispatch }) => {
-    const socket = io("http://localhost:8000");
+    // In production, use same origin; in development, use localhost:8000
+    const socketUrl = process.env.NODE_ENV === 'production'
+      ? window.location.origin
+      : (process.env.REACT_APP_API_URL || "http://localhost:8000");
+    const socket = io(socketUrl);
 
     socket.io.on("new-room-created-from-server", (message) => {
       dispatch(receiveMessage(message));

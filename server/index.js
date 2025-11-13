@@ -49,11 +49,17 @@ const io = new Server(httpServer, {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
+// Serve static files from the React app build directory
+const clientBuildPath = path.join(__dirname, "../client/build");
+app.use(express.static(clientBuildPath));
 
-app.use("/", router);
+// API routes
+app.use("/api", router);
+
+// Catch-all route to serve React app for client-side routing
+app.get("*", (req, res) => {
+  res.sendFile(path.join(clientBuildPath, "index.html"));
+});
 
 io.on("connection", sockets);
 

@@ -4,8 +4,14 @@ export const fetchFromApi = async (url, method, body) => {
   const state = store.getState();
   const { sessionToken } = state.session;
 
-  // Construct the URL with query parameters
-  const fullUrl = new URL(`http://localhost:8000${url}`);
+  // In production, use same origin; in development, use localhost:8000
+  const baseUrl = process.env.NODE_ENV === 'production'
+    ? window.location.origin
+    : (process.env.REACT_APP_API_URL || 'http://localhost:8000');
+
+  // Construct the URL with query parameters - add /api prefix to all routes
+  const apiUrl = url.startsWith('/api') ? url : `/api${url}`;
+  const fullUrl = new URL(apiUrl, baseUrl);
 
   if (method === "GET" && body) {
     // Convert the query parameters object into URL search parameters
