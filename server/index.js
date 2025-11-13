@@ -18,7 +18,6 @@ const PORT = process.env.PORT || 8000;
 // CORS configuration - allow both local and production domains
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://great-brit.up.railway.app", // Update this with your Railway frontend URL
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -28,6 +27,13 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
+
+      // In production, allow requests from the same origin (Railway deployment)
+      // Extract the host from the origin and check if it's a Railway app
+      if (origin && (origin.includes('.railway.app') || origin.includes('.up.railway.app'))) {
+        return callback(null, true);
+      }
+
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -41,7 +47,22 @@ app.use(
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin
+      if (!origin) return callback(null, true);
+
+      // Allow Railway deployments
+      if (origin && (origin.includes('.railway.app') || origin.includes('.up.railway.app'))) {
+        return callback(null, true);
+      }
+
+      // Allow configured origins
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   },
 });
