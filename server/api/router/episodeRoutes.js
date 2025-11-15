@@ -32,23 +32,27 @@ const episodeRoutes = (router) => {
       let starsForEpisode;
       if (number === 1) {
         // For episode 1, include all active stars
-        starsForEpisode = await prisma.star.findMany({ where: { active: true } });
+        starsForEpisode = await prisma.star.findMany({
+          where: { active: true },
+        });
       } else {
         // For subsequent episodes, copy stars from previous episode
         const previousEpisodeStars = await prisma.episodeStar.findMany({
           where: { episodeId: number - 1 },
           include: { star: true },
         });
-        starsForEpisode = previousEpisodeStars.map(es => es.star);
+        starsForEpisode = previousEpisodeStars.map((es) => es.star);
 
         // If no previous episode stars found, fall back to all active stars
         if (starsForEpisode.length === 0) {
-          starsForEpisode = await prisma.star.findMany({ where: { active: true } });
+          starsForEpisode = await prisma.star.findMany({
+            where: { active: true },
+          });
         }
       }
 
       // Create episode-star relationships
-      const episodeStarsData = starsForEpisode.map(star => ({
+      const episodeStarsData = starsForEpisode.map((star) => ({
         episodeId: newEpisode.number,
         starId: star.id,
       }));
@@ -123,7 +127,7 @@ const episodeRoutes = (router) => {
           data: {
             description,
             time,
-            baseAmount,
+            baseAmount: Number(baseAmount),
             starId: starId ? parseInt(starId) : null,
             episodeId: episodeNumber,
           },
@@ -184,159 +188,171 @@ const episodeRoutes = (router) => {
   });
 
   // Get stars for a specific episode
-  router.get("/episodes/:episodeId/stars", authenticateUser, async (req, res) => {
-    const { episodeId } = req.params;
-    const episodeNumber = parseInt(episodeId);
+  router.get(
+    "/episodes/:episodeId/stars",
+    authenticateUser,
+    async (req, res) => {
+      const { episodeId } = req.params;
+      const episodeNumber = parseInt(episodeId);
 
-    try {
-      const episodeStars = await prisma.episodeStar.findMany({
-        where: { episodeId: episodeNumber },
-        include: { star: true },
-      });
+      try {
+        const episodeStars = await prisma.episodeStar.findMany({
+          where: { episodeId: episodeNumber },
+          include: { star: true },
+        });
 
-      const stars = episodeStars.map(es => es.star);
-      res.json({ stars });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
+        const stars = episodeStars.map((es) => es.star);
+        res.json({ stars });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+      }
     }
-  });
+  );
 
   // Update stars for a specific episode
-  router.put("/episodes/:episodeId/stars", authenticateUser, async (req, res) => {
-    const { episodeId } = req.params;
-    const episodeNumber = parseInt(episodeId);
-    const { starIds } = req.body; // Array of star IDs
+  router.put(
+    "/episodes/:episodeId/stars",
+    authenticateUser,
+    async (req, res) => {
+      const { episodeId } = req.params;
+      const episodeNumber = parseInt(episodeId);
+      const { starIds } = req.body; // Array of star IDs
 
-    try {
-      // Delete all existing episode-star relationships for this episode
-      await prisma.episodeStar.deleteMany({
-        where: { episodeId: episodeNumber },
+      try {
+        // Delete all existing episode-star relationships for this episode
+        await prisma.episodeStar.deleteMany({
+          where: { episodeId: episodeNumber },
+        });
+
+        // Create new episode-star relationships
+        const episodeStarsData = starIds.map((starId) => ({
+          episodeId: episodeNumber,
+          starId: parseInt(starId),
+        }));
+
+        await prisma.episodeStar.createMany({
+          data: episodeStarsData,
+        });
+
+        // Fetch and return the updated stars
+        const episodeStars = await prisma.episodeStar.findMany({
+          where: { episodeId: episodeNumber },
+          include: { star: true },
+        });
+
+        const stars = episodeStars.map((es) => es.star);
+        res.json({ stars });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  );
+
+  router.post(
+    "/episodes/:episodeId/calculateDeltas",
+    authenticateUser,
+    async (req, res) => {
+      const { episodeId } = req.params;
+      const episodeNumber = parseInt(episodeId);
+
+      const episode = await prisma.episode.findUnique({
+        where: { number: episodeNumber },
       });
 
-      // Create new episode-star relationships
-      const episodeStarsData = starIds.map(starId => ({
-        episodeId: episodeNumber,
-        starId: parseInt(starId),
-      }));
+      if (!episode) {
+        return res.status(404).json({ message: "Episode not found" });
+      }
 
-      await prisma.episodeStar.createMany({
-        data: episodeStarsData,
-      });
-
-      // Fetch and return the updated stars
-      const episodeStars = await prisma.episodeStar.findMany({
+      // get all rankings and calculate deltas
+      const allUsers = await prisma.user.findMany();
+      const eventsForEpisode = await prisma.event.findMany({
         where: { episodeId: episodeNumber },
         include: { star: true },
       });
+      const split = splitArraysByLength[episode.number];
 
-      const stars = episodeStars.map(es => es.star);
-      res.json({ stars });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+      const userDeltaPromises = allUsers.map(async (user) => {
+        let totalDelta = 0;
 
-  router.post("/episodes/:episodeId/calculateDeltas", authenticateUser, async (req, res) => {
-    const { episodeId } = req.params;
-    const episodeNumber = parseInt(episodeId);
+        const rankings = await prisma.ranking.findMany({
+          where: {
+            userId: user.id,
+            episode: episode.number,
+          },
+          include: { star: true },
+        });
 
-    const episode = await prisma.episode.findUnique({
-      where: { number: episodeNumber },
-    });
+        const userBets = await prisma.bet.findMany({
+          where: {
+            OR: [
+              { betterId: user.id },
+              { eligibleUsers: { some: { id: user.id } } },
+            ],
+            episode: episode.number,
+          },
+          include: {
+            better: true,
+            eligibleUsers: true,
+          },
+        });
 
-    if (!episode) {
-      return res.status(404).json({ message: "Episode not found" });
-    }
+        for (const userBet of userBets) {
+          const { better, won, maxLose, odds, eligibleUsers } = userBet;
+          const isUserBetter = better.id === user.id;
 
-    // get all rankings and calculate deltas
-    const allUsers = await prisma.user.findMany();
-    const eventsForEpisode = await prisma.event.findMany({
-      where: { episodeId: episodeNumber },
-      include: { star: true },
-    });
-    const split = splitArraysByLength[episode.number];
+          let deltaChange = 0;
+          if (isUserBetter) {
+            deltaChange = won
+              ? maxLose * eligibleUsers.length * (1 / odds)
+              : -maxLose * eligibleUsers.length;
+          } else {
+            deltaChange = won ? -maxLose * (1 / odds) : maxLose;
+          }
 
-    const userDeltaPromises = allUsers.map(async (user) => {
-      let totalDelta = 0;
-
-      const rankings = await prisma.ranking.findMany({
-        where: {
-          userId: user.id,
-          episode: episode.number,
-        },
-        include: { star: true },
-      });
-
-      const userBets = await prisma.bet.findMany({
-        where: {
-          OR: [
-            { betterId: user.id },
-            { eligibleUsers: { some: { id: user.id } } },
-          ],
-          episode: episode.number,
-        },
-        include: {
-          better: true,
-          eligibleUsers: true,
-        },
-      });
-
-      for (const userBet of userBets) {
-        const { better, won, maxLose, odds, eligibleUsers } = userBet;
-        const isUserBetter = better.id === user.id;
-
-        let deltaChange = 0;
-        if (isUserBetter) {
-          deltaChange = won
-            ? maxLose * eligibleUsers.length * (1 / odds)
-            : -maxLose * eligibleUsers.length;
-        } else {
-          deltaChange = won ? -maxLose * (1 / odds) : maxLose;
+          totalDelta += deltaChange;
         }
 
-        totalDelta += deltaChange;
-      }
+        for (const ranking of rankings) {
+          const { rank } = ranking;
+          const multiplier = split[split.length - rank];
 
-      for (const ranking of rankings) {
-        const { rank } = ranking;
-        const multiplier = split[split.length - rank];
+          const eventsForStar = eventsForEpisode.filter((event) => {
+            return event.star && event.star.id === ranking.star.id;
+          });
+          const total = eventsForStar.reduce((acc, event) => {
+            return acc + event.baseAmount;
+          }, 0);
+          const delta = multiplier * total;
+          totalDelta += delta;
+        }
 
-        const eventsForStar = eventsForEpisode.filter((event) => {
-          return event.star && event.star.id === ranking.star.id;
-        });
-        const total = eventsForStar.reduce((acc, event) => {
-          return acc + event.baseAmount;
-        }, 0);
-        const delta = multiplier * total;
-        totalDelta += delta;
-      }
-
-      await prisma.userDelta.upsert({
-        where: {
-          userId_episodeId: {
+        await prisma.userDelta.upsert({
+          where: {
+            userId_episodeId: {
+              userId: user.id,
+              episodeId: episodeNumber,
+            },
+          },
+          update: {
+            delta: totalDelta,
+          },
+          create: {
             userId: user.id,
             episodeId: episodeNumber,
+            delta: totalDelta,
           },
-        },
-        update: {
-          delta: totalDelta,
-        },
-        create: {
-          userId: user.id,
-          episodeId: episodeNumber,
-          delta: totalDelta,
-        },
+        });
+
+        return totalDelta;
       });
 
-      return totalDelta;
-    });
+      await Promise.all(userDeltaPromises);
 
-    await Promise.all(userDeltaPromises);
-
-    res.json({});
-  });
+      res.json({});
+    }
+  );
 
   return router;
 };

@@ -39,7 +39,7 @@ const eventRoutes = (router) => {
         data: {
           description,
           time,
-          baseAmount,
+          baseAmount: Number(baseAmount),
           starId: parsedStarId,
           episodeId: parsedEpisodeId,
         },
