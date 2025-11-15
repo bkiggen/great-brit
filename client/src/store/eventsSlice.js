@@ -14,7 +14,7 @@ export const fetchEvents = createAsyncThunk("events/fetchEvents", async () => {
 });
 
 export const fetchEventsByEpisode = createAsyncThunk(
-  "events/fetchEvents",
+  "events/fetchEventsByEpisode",
   async (episodeId) => {
     const data = await makeRequest.get(`/episodes/${episodeId}/events`);
 
@@ -39,6 +39,9 @@ export const eventsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(fetchEvents.fulfilled, (state, action) => {
+      state.list = action.payload;
+    });
+    builder.addCase(fetchEventsByEpisode.fulfilled, (state, action) => {
       state.list = action.payload;
     });
     builder.addCase(createEvent.fulfilled, (state, action) => {
