@@ -302,6 +302,97 @@ const userRoutes = (router) => {
     }
   });
 
+  // Backfill rankings for users who don't have any
+  router.post("/admin/backfill-rankings", authenticateUser, async (req, res) => {
+    try {
+      const results = {
+        usersProcessed: 0,
+        rankingsCreated: 0,
+        details: [],
+      };
+
+      // Get all users
+      const users = await prisma.user.findMany({
+        select: { id: true, firstName: true, lastName: true },
+      });
+
+      results.usersProcessed = users.length;
+
+      // Get all episodes
+      const episodes = await prisma.episode.findMany({
+        orderBy: { number: "asc" },
+      });
+
+      for (const user of users) {
+        const userDetails = {
+          user: `${user.firstName} ${user.lastName}`,
+          episodes: [],
+        };
+
+        for (const episode of episodes) {
+          // Check if user already has rankings for this episode
+          const existingRankings = await prisma.ranking.findMany({
+            where: {
+              userId: user.id,
+              episode: episode.number,
+            },
+          });
+
+          if (existingRankings.length > 0) {
+            userDetails.episodes.push({
+              episode: episode.number,
+              action: `Already has ${existingRankings.length} rankings`,
+            });
+            continue;
+          }
+
+          // Get stars assigned to this episode
+          const episodeStars = await prisma.episodeStar.findMany({
+            where: { episodeId: episode.number },
+            select: { starId: true },
+            orderBy: { starId: "asc" },
+          });
+
+          if (episodeStars.length === 0) {
+            userDetails.episodes.push({
+              episode: episode.number,
+              action: "No stars assigned",
+            });
+            continue;
+          }
+
+          // Create rankings for this episode
+          const rankings = episodeStars.map((es, index) => ({
+            userId: user.id,
+            starId: es.starId,
+            rank: index + 1,
+            episode: episode.number,
+          }));
+
+          await prisma.ranking.createMany({
+            data: rankings,
+          });
+
+          results.rankingsCreated += rankings.length;
+          userDetails.episodes.push({
+            episode: episode.number,
+            action: `Created ${rankings.length} rankings`,
+          });
+        }
+
+        results.details.push(userDetails);
+      }
+
+      res.json({
+        message: "Backfill complete",
+        results,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   return router;
 };
 
