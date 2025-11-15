@@ -231,8 +231,8 @@ const AdminEvents = ({ episodeId }) => {
             <AccordionDetails>
               {user.rankings?.map((ranking) => {
                 return (
-                  <div>
-                    {ranking.rank} - {ranking.starId.firstName}
+                  <div key={ranking.id}>
+                    {ranking.rank} - {ranking.star?.firstName} {ranking.star?.lastName}
                   </div>
                 );
               })}
