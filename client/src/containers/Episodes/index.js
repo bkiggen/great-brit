@@ -28,7 +28,7 @@ const Episodes = ({ admin }) => {
       setActive(episodes[episodes.length - 1]);
     }
   }, [episodes]);
-  console.log(active);
+
   return (
     <div className={`episodes ${styles}`}>
       {admin && <CreateEpisode episodes={episodes} />}
@@ -36,11 +36,11 @@ const Episodes = ({ admin }) => {
         <div className="tabs">
           {episodes.map((episode) => {
             const tabClass =
-              episode._id === active?._id ? "tab active" : "tab inactive";
+              episode.number === active?.number ? "tab active" : "tab inactive";
 
             return (
               <div
-                key={episode._id}
+                key={episode.number}
                 className={tabClass}
                 onClick={() => handleTabClick(episode)}
               >
@@ -61,13 +61,13 @@ const Episodes = ({ admin }) => {
             <Button
               variant="contained"
               onClick={() => {
-                dispatch(calculateDeltas({ episodeId: active?._id }));
+                dispatch(calculateDeltas({ episodeId: active?.number }));
               }}
             >
               Calculate Deltas
             </Button>
           </Box>
-          {active && <Events episodeId={active?._id} />}
+          {active && <Events episodeId={active?.number} />}
           {active && (
             <>
               <Typography
@@ -76,7 +76,7 @@ const Episodes = ({ admin }) => {
               >
                 Bets:
               </Typography>
-              <BetTable episodeId={active?._id} readOnly admin={admin} />
+              <BetTable episodeId={active?.number} readOnly admin={admin} />
             </>
           )}
         </div>

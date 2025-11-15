@@ -45,7 +45,7 @@ const Rankings = () => {
 
   useEffect(() => {
     if (currentEpisode) {
-      setEpisodeId(currentEpisode._id);
+      setEpisodeId(currentEpisode.number);
     }
   }, [currentEpisode]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -54,7 +54,7 @@ const Rankings = () => {
   };
 
   const handleMove = (item, direction) => {
-    const oldIdx = items.findIndex((i) => i._id === item._id);
+    const oldIdx = items.findIndex((i) => i.id === item.id);
     const newItems = cloneDeep(items);
     const oldItem = newItems[oldIdx];
 
@@ -83,7 +83,7 @@ const Rankings = () => {
           sx={{ marginLeft: "12px", minWidth: "100px" }}
         >
           {episodes.map((episode) => (
-            <MenuItem key={episode._id} value={episode._id}>
+            <MenuItem key={episode.number} value={episode.number}>
               {episode.number}
             </MenuItem>
           ))}
@@ -99,7 +99,7 @@ const Rankings = () => {
       {items.map((item, idx) => {
         return (
           <Box
-            key={item._id}
+            key={item.id}
             sx={{
               height: "20px",
               width: "300px",

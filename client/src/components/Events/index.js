@@ -150,7 +150,7 @@ const AdminEvents = ({ episodeId }) => {
               >
                 <MenuItem value="">Select a star</MenuItem>
                 {stars.map((star) => (
-                  <MenuItem key={star._id} value={star._id}>
+                  <MenuItem key={star.id} value={star.id}>
                     {`${star.firstName} ${star.lastName}`}
                   </MenuItem>
                 ))}
@@ -185,7 +185,7 @@ const AdminEvents = ({ episodeId }) => {
         hideFooter
         checkboxSelection={false}
         className="bg-white border-0 rounded-0"
-        getRowId={(event) => event._id}
+        getRowId={(event) => event.id}
       />
 
       <Box sx={{ marginTop: "62px", fontSize: "24px", fontWeight: "600" }}>
@@ -193,7 +193,7 @@ const AdminEvents = ({ episodeId }) => {
       </Box>
       {users.map((user) => {
         return (
-          <Accordion sx={{ margin: "16px 0" }} key={user._id}>
+          <Accordion sx={{ margin: "16px 0" }} key={user.id}>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               sx={{

@@ -12,10 +12,12 @@ import {
 } from "@mui/material";
 import { createBet } from "store/betsSlice";
 import { fetchUsers, usersSelector } from "store/usersSlice";
+import { sessionSelector } from "store/sessionSlice";
 
 const Bets = () => {
   const dispatch = useDispatch();
   const users = useSelector(usersSelector);
+  const { user: sessionUser } = useSelector(sessionSelector);
   const [description, setDescription] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedOdds, setSelectedOdds] = useState([1, 1]);
@@ -155,7 +157,8 @@ const Bets = () => {
               }}
             >
               {selected.map((userId) => {
-                const user = users.find((user) => user._id === userId);
+                const user = users.find((user) => user.id === userId);
+
                 return (
                   <Chip
                     key={userId}
@@ -168,11 +171,13 @@ const Bets = () => {
           )}
           sx={{ minWidth: "350px", width: "65%" }}
         >
-          {users.map((user) => (
-            <MenuItem key={user._id} value={user._id}>
-              {`${user.firstName} ${user.lastName}`}
-            </MenuItem>
-          ))}
+          {users
+            .filter((user) => user.id !== sessionUser?.id)
+            .map((user) => (
+              <MenuItem key={user.id} value={user.id}>
+                {`${user.firstName} ${user.lastName}`}
+              </MenuItem>
+            ))}
         </Select>
       </Grid>
       <Box

@@ -50,7 +50,7 @@ const betRoutes = (router) => {
           betterId: req.sessionUser.id,
           episode: latestEpisode.number,
           eligibleUsers: {
-            connect: eligibleUsers.map((userId) => ({ id: userId })),
+            connect: eligibleUsers.filter(Boolean).map((userId) => ({ id: userId })),
           },
         },
         include: {

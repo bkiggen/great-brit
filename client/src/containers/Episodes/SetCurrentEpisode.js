@@ -19,21 +19,19 @@ const SetCurrentEpisode = ({ episodes }) => {
   return (
     <Box>
       Current Episode:
-      {currentEpisode && (
-        <Select
-          value={currentEpisode?._id}
-          onChange={(e) => {
-            dispatch(setCurrentEpisode({ episodeId: e.target.value }));
-          }}
-          sx={{ marginLeft: "12px", minWidth: "100px" }}
-        >
-          {episodes.map((episode) => (
-            <MenuItem key={episode._id} value={episode._id}>
-              {episode.number}
-            </MenuItem>
-          ))}
-        </Select>
-      )}
+      <Select
+        value={currentEpisode?.number || ""}
+        onChange={(e) => {
+          dispatch(setCurrentEpisode({ episodeId: e.target.value }));
+        }}
+        sx={{ marginLeft: "12px", minWidth: "100px" }}
+      >
+        {episodes.map((episode) => (
+          <MenuItem key={episode.number} value={episode.number}>
+            {episode.number}
+          </MenuItem>
+        ))}
+      </Select>
     </Box>
   );
 };

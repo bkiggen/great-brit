@@ -15,7 +15,7 @@ const AdminPage = () => {
       component: <Episodes admin />,
       label: "Episodes",
     },
-    { path: "/admin/stars", component: <Stars />, label: "Stars" },
+    { path: "/admin/stars", component: <Stars />, label: "Bakers" },
   ];
 
   const selectedTab =

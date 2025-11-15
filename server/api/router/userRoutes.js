@@ -26,7 +26,9 @@ const userRoutes = (router) => {
 
     // Only allow users to access their own balance history
     if (id && id !== req.sessionUser.id) {
-      return res.status(403).json({ message: "Forbidden: Cannot access other users' data" });
+      return res
+        .status(403)
+        .json({ message: "Forbidden: Cannot access other users' data" });
     }
 
     const userBalanceHistory = await prisma.userDelta.findMany({
@@ -45,7 +47,9 @@ const userRoutes = (router) => {
     // Validate the secret code
     const requiredSecret = process.env.NEW_USER_SECRET;
     if (!secret || secret !== requiredSecret) {
-      return res.status(403).json({ message: "Invalid or missing secret code" });
+      return res
+        .status(403)
+        .json({ message: "Invalid or missing secret code" });
     }
 
     try {
@@ -76,56 +80,62 @@ const userRoutes = (router) => {
   });
 
   // Get all users with rankings for a specific episode
-  router.get("/users/usersWithRankings/:episodeId", authenticateUser, async (req, res) => {
-    const { episodeId } = req.params;
-    const episodeNumber = parseInt(episodeId, 10);
+  router.get(
+    "/users/usersWithRankings/:episodeId",
+    authenticateUser,
+    async (req, res) => {
+      const { episodeId } = req.params;
+      const episodeNumber = parseInt(episodeId, 10);
 
-    // Validate episode number
-    if (isNaN(episodeNumber)) {
-      return res.status(400).json({ message: "Invalid episode ID" });
-    }
+      // Validate episode number
+      if (isNaN(episodeNumber)) {
+        return res.status(400).json({ message: "Invalid episode ID" });
+      }
 
-    try {
-      const users = await prisma.user.findMany({
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          rankings: {
-            where: { episode: episodeNumber },
-            include: { star: true },
-            orderBy: { rank: "asc" },
+      try {
+        const users = await prisma.user.findMany({
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            rankings: {
+              where: { episode: episodeNumber },
+              include: { star: true },
+              orderBy: { rank: "asc" },
+            },
+            userDeltas: {
+              where: { episodeId: episodeNumber },
+            },
           },
-          userDeltas: {
-            where: { episodeId: episodeNumber },
-          },
-        },
-      });
+        });
 
-      const usersWithRankings = users.map((user) => ({
-        ...user,
-        delta: user.userDeltas[0]?.delta || null,
-      }));
+        const usersWithRankings = users.map((user) => ({
+          ...user,
+          delta: user.userDeltas[0]?.delta || null,
+        }));
 
-      res.json({ users: usersWithRankings });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
+        res.json({ users: usersWithRankings });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+      }
     }
-  });
+  );
 
   // Update User
   router.patch("/users", authenticateUser, async (req, res) => {
-    const { _id, firstName, lastName, email } = req.query;
+    const { id, firstName, lastName, email } = req.query;
 
     // Only allow users to update their own profile
-    if (_id !== req.sessionUser.id) {
-      return res.status(403).json({ message: "Forbidden: Cannot update other users' profiles" });
+    if (id !== req.sessionUser.id) {
+      return res
+        .status(403)
+        .json({ message: "Forbidden: Cannot update other users' profiles" });
     }
 
     const user = await prisma.user.update({
-      where: { id: _id },
+      where: { id },
       data: { firstName, lastName, email },
       select: {
         id: true,

@@ -76,6 +76,7 @@ export const sessionSlice = createSlice({
   },
 });
 
+export const sessionSelector = (state) => state.session;
 export const selectUser = (state) => state.session.user;
 export const selectIsAuthenticated = (state) => state.session.isAuthenticated;
 export const selectLoading = (state) => state.session.loading;

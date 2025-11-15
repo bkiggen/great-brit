@@ -23,7 +23,7 @@ const NewStar = () => {
   return (
     <div className={`myClass ${styles}`}>
       <div className="top">
-        <span className="title">Add a Star</span>
+        <span className="title">Add a Baker</span>
       </div>
       <div className="bottom">
         <div className="formItem">

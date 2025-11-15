@@ -15,9 +15,9 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
   const renderBetAcceptButton = (params) => {
     const { better, eligibleUsers } = params.row;
 
-    const yourBet = sessionUser?.id === better?._id;
+    const yourBet = sessionUser?.id === better?.id;
     const eligibleBet = eligibleUsers?.find(
-      (user) => user._id === sessionUser?.id
+      (user) => user.id === sessionUser?.id
     );
 
     if (yourBet) {
@@ -78,7 +78,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
       renderCell: (params) => (
         <Box sx={{ padding: "12px" }}>
           {params.row.eligibleUsers?.map((user) => (
-            <div key={user._id}>{user.firstName}</div>
+            <div key={user.id}>{user.firstName}</div>
           ))}
         </Box>
       ),
