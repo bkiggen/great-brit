@@ -9,6 +9,7 @@ import Bets from "containers/Bets";
 import Episodes from "containers/Episodes";
 import Admin from "containers/Admin";
 import Login from "containers/Login";
+import Profile from "containers/Profile";
 
 const ProtectedRoute = ({ element }) => {
   const session = useSelector(sessionSelector);
@@ -48,6 +49,10 @@ const router = createBrowserRouter([
       {
         path: "/admin/*",
         element: <ProtectedRoute element={<Admin />} />,
+      },
+      {
+        path: "/profile",
+        element: <ProtectedRoute element={<Profile />} />,
       },
       {
         path: "/login",

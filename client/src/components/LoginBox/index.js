@@ -21,12 +21,13 @@ const LoginBox = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [secret, setSecret] = useState("");
-  const [snackOpen, setSnackOpen] = useState("");
+  const [snackOpen, setSnackOpen] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const session = useSelector(sessionSelector);
+  const loginError = useSelector((state) => state.session.error);
 
   const handleRegister = async () => {
     dispatch(registerUser({ email, password, firstName, lastName, secret }));
@@ -43,6 +44,12 @@ const LoginBox = () => {
       navigate("/");
     }
   }, [session]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (loginError) {
+      setSnackOpen(true);
+    }
+  }, [loginError]);
 
   const inputProps = {
     type: "text",
@@ -113,9 +120,9 @@ const LoginBox = () => {
       </S.Container>
       <Snackbar
         open={snackOpen}
-        autoHideDuration={2000}
-        onClose={setSnackOpen}
-        message="Something went wrong"
+        autoHideDuration={4000}
+        onClose={() => setSnackOpen(false)}
+        message={loginError || "Something went wrong"}
       />
     </>
   );

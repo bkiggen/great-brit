@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { sessionSelector } from "store";
 import { useSelector, useDispatch } from "react-redux";
 import { getInitials } from "helpers/getInitials";
-import { Button, Card, Typography, Box } from "@mui/material";
+import { Button, Card, Typography, Box, Menu, MenuItem } from "@mui/material";
 import { logoutUser } from "store/sessionSlice";
 import LinkItem from "./LinkItem";
 // import ChatWidget from "components/ChatWidget";
@@ -14,6 +14,16 @@ const Header = ({ socket }) => {
   const navigate = useNavigate();
   const session = useSelector(sessionSelector);
   const dispatch = useDispatch();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   // const createNewRoom = () => {
   //   const roomId = uuidv4();
@@ -39,7 +49,13 @@ const Header = ({ socket }) => {
   //   navigate("/");
   // };
 
+  const handleProfile = () => {
+    handleClose();
+    navigate("/profile");
+  };
+
   const logout = () => {
+    handleClose();
     navigate("/login");
     dispatch(logoutUser());
   };
@@ -73,11 +89,31 @@ const Header = ({ socket }) => {
         )}
         <Box>
           {session.sessionToken ? (
-            <Button variant="text" onClick={logout}>
-              <div className="logout">
-                {getInitials(session.user.firstName, session.user.lastName)}
-              </div>
-            </Button>
+            <>
+              <Button
+                variant="text"
+                onClick={handleClick}
+                aria-controls={open ? "account-menu" : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? "true" : undefined}
+              >
+                <div className="logout">
+                  {getInitials(session.user.firstName, session.user.lastName)}
+                </div>
+              </Button>
+              <Menu
+                id="account-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                  "aria-labelledby": "basic-button",
+                }}
+              >
+                <MenuItem onClick={handleProfile}>Profile</MenuItem>
+                <MenuItem onClick={logout}>Logout</MenuItem>
+              </Menu>
+            </>
           ) : (
             <Link to={"/login"}>
               <Button variant="text">

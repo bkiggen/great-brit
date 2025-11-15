@@ -150,6 +150,67 @@ const userRoutes = (router) => {
     res.json({ user });
   });
 
+  // Update User Profile
+  router.put("/user/profile", authenticateUser, async (req, res) => {
+    const { firstName, lastName, email } = req.body;
+
+    try {
+      const user = await prisma.user.update({
+        where: { id: req.sessionUser.id },
+        data: { firstName, lastName, email },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      res.json({ user });
+    } catch (error) {
+      console.error(error);
+      if (error.code === "P2002") {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Change Password
+  router.put("/user/password", authenticateUser, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.sessionUser.id },
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+
+      if (!passwordMatch) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await prisma.user.update({
+        where: { id: req.sessionUser.id },
+        data: { password: hashedPassword },
+      });
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
