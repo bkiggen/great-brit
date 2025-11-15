@@ -28,12 +28,13 @@ app.use(
       // Allow requests with no origin (like mobile apps or Postman)
       if (!origin) return callback(null, true);
 
-      // In production, allow requests from the same origin (Railway deployment)
-      // Extract the host from the origin and check if it's a Railway app
-      if (origin && (origin.includes('.railway.app') || origin.includes('.up.railway.app'))) {
+      // In production (when NODE_ENV is production), allow all origins
+      // This is safe when serving the frontend from the same server
+      if (process.env.NODE_ENV === 'production') {
         return callback(null, true);
       }
 
+      // In development, check allowed origins
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -51,12 +52,12 @@ const io = new Server(httpServer, {
       // Allow requests with no origin
       if (!origin) return callback(null, true);
 
-      // Allow Railway deployments
-      if (origin && (origin.includes('.railway.app') || origin.includes('.up.railway.app'))) {
+      // In production, allow all origins (safe when serving from same server)
+      if (process.env.NODE_ENV === 'production') {
         return callback(null, true);
       }
 
-      // Allow configured origins
+      // In development, check allowed origins
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
