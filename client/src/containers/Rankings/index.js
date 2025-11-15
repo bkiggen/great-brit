@@ -72,7 +72,7 @@ const Rankings = () => {
 
   return items ? (
     <DndProvider backend={HTML5Backend}>
-      <Box sx={{ paddingTop: "150px", paddingBottom: "80px" }}>
+      <Box sx={{ paddingTop: "80px", paddingBottom: "80px" }}>
         {currentEpisode && (
           <Select
             value={episodeId}
