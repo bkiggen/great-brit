@@ -72,6 +72,33 @@ const userRoutes = (router) => {
         },
       });
 
+      // Create default rankings for all episodes
+      const episodes = await prisma.episode.findMany({
+        orderBy: { number: "asc" },
+      });
+
+      for (const episode of episodes) {
+        // Get stars assigned to this episode
+        const episodeStars = await prisma.episodeStar.findMany({
+          where: { episodeId: episode.number },
+          select: { starId: true },
+        });
+
+        if (episodeStars.length > 0) {
+          // Create rankings for this episode
+          const rankings = episodeStars.map((es, index) => ({
+            userId: user.id,
+            starId: es.starId,
+            rank: index + 1,
+            episode: episode.number,
+          }));
+
+          await prisma.ranking.createMany({
+            data: rankings,
+          });
+        }
+      }
+
       res.json({ user });
     } catch (error) {
       console.error(error);
