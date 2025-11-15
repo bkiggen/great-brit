@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEpisodes, calculateDeltas } from "store/episodesSlice";
+import { fetchStars } from "store/starsSlice";
 import { Button, Typography, Box } from "@mui/material";
 
 import BetTable from "containers/Bets/BetTable";
 import CreateEpisode from "./CreateEpisode";
+import ManageStars from "./ManageStars";
 import Events from "../../components/Events";
 
 import { styles } from "./styles";
@@ -21,6 +23,7 @@ const Episodes = ({ admin }) => {
 
   useEffect(() => {
     dispatch(fetchEpisodes());
+    dispatch(fetchStars());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -68,6 +71,7 @@ const Episodes = ({ admin }) => {
             </Button>
           </Box>
           {active && <Events episodeId={active?.number} />}
+          {active && admin && <ManageStars episodeId={active?.number} />}
           {active && (
             <>
               <Typography

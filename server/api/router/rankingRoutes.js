@@ -13,10 +13,20 @@ const rankingsRoutes = (router) => {
 
       const episodeNumber = parseInt(episodeId);
 
+      // Get stars assigned to this episode
+      const episodeStars = await prisma.episodeStar.findMany({
+        where: { episodeId: episodeNumber },
+        select: { starId: true },
+      });
+
+      const episodeStarIds = episodeStars.map(es => es.starId);
+
+      // Get user rankings for stars in this episode
       let userRankings = await prisma.ranking.findMany({
         where: {
           userId: req.sessionUser.id,
           episode: episodeNumber,
+          starId: { in: episodeStarIds },
         },
         include: { star: true },
         orderBy: { rank: "asc" },
@@ -49,12 +59,16 @@ const rankingsRoutes = (router) => {
       });
 
       // Create new rankings for the user
-      const rankingsToCreate = rankings.map((rankedStar) => ({
-        userId,
-        starId: parseInt(rankedStar.starId),
-        rank: rankedStar.rank,
-        episode: latestEpisode.number,
-      }));
+      const rankingsToCreate = rankings.map((rankedStar) => {
+        // Handle both cases: starId as a direct property or nested in star object
+        const starId = rankedStar.starId || rankedStar.star?.id;
+        return {
+          userId,
+          starId: parseInt(starId),
+          rank: rankedStar.rank,
+          episode: latestEpisode.number,
+        };
+      });
 
       await prisma.ranking.createMany({
         data: rankingsToCreate,

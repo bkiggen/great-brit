@@ -115,7 +115,7 @@ const Rankings = () => {
             }}
           >
             <Box sx={{ fontSize: "24px", fontWeight: 700 }}>
-              {idx + 1}: {item.starId?.firstName}
+              {idx + 1}: {item.star?.firstName} {item.star?.lastName}
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column" }}>
               <ArrowCircleUpIcon

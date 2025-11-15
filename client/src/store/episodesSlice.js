@@ -3,6 +3,7 @@ import { makeRequest } from "../helpers/makeRequest";
 
 export const currentEpisodeSelector = (state) => state.episodes.currentEpisode;
 export const episodesSelector = (state) => state.episodes.list;
+export const episodeStarsSelector = (state) => state.episodes.episodeStars;
 
 // Thunk to fetch episodes
 export const fetchEpisodes = createAsyncThunk(
@@ -58,12 +59,31 @@ export const fetchCurrentEpisode = createAsyncThunk(
   }
 );
 
+// Thunk to fetch stars for a specific episode
+export const fetchEpisodeStars = createAsyncThunk(
+  "episodes/fetchEpisodeStars",
+  async (episodeId) => {
+    const data = await makeRequest.get(`/episodes/${episodeId}/stars`);
+    return data.stars;
+  }
+);
+
+// Thunk to update stars for a specific episode
+export const updateEpisodeStars = createAsyncThunk(
+  "episodes/updateEpisodeStars",
+  async ({ episodeId, starIds }) => {
+    const data = await makeRequest.put(`/episodes/${episodeId}/stars`, { starIds });
+    return data.stars;
+  }
+);
+
 const episodesSlice = createSlice({
   name: "episodes",
   initialState: {
     list: [],
     events: [],
     currentEpisode: null,
+    episodeStars: [],
     loading: false,
     error: null,
   },
@@ -122,6 +142,28 @@ const episodesSlice = createSlice({
         state.currentEpisode = action.payload;
       })
       .addCase(fetchCurrentEpisode.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(fetchEpisodeStars.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchEpisodeStars.fulfilled, (state, action) => {
+        state.loading = false;
+        state.episodeStars = action.payload;
+      })
+      .addCase(fetchEpisodeStars.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(updateEpisodeStars.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateEpisodeStars.fulfilled, (state, action) => {
+        state.loading = false;
+        state.episodeStars = action.payload;
+      })
+      .addCase(updateEpisodeStars.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

@@ -57,8 +57,9 @@ model Star {
   createdAt DateTime  @default(now())
 
   // Relations
-  rankings  Ranking[]
-  events    Event[]
+  rankings      Ranking[]
+  events        Event[]
+  episodeStars  EpisodeStar[]
 
   @@map("stars")
 }
@@ -71,10 +72,11 @@ model Episode {
   createdAt  DateTime  @default(now())
 
   // Relations
-  events     Event[]
-  rankings   Ranking[]
-  bets       Bet[]
-  userDeltas UserDelta[]
+  events       Event[]
+  rankings     Ranking[]
+  bets         Bet[]
+  userDeltas   UserDelta[]
+  episodeStars EpisodeStar[]
 
   @@map("episodes")
 }
@@ -167,4 +169,21 @@ model Room {
   createdAt DateTime @default(now())
 
   @@map("rooms")
+}
+
+// EpisodeStar model - Join table tracking which stars are in which episodes
+model EpisodeStar {
+  id        Int      @id @default(autoincrement())
+  episodeId Int
+  starId    Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  episode Episode @relation(fields: [episodeId], references: [number], onDelete: Cascade)
+  star    Star    @relation(fields: [starId], references: [id], onDelete: Cascade)
+
+  @@unique([episodeId, starId])
+  @@index([episodeId])
+  @@index([starId])
+  @@map("episode_stars")
 }

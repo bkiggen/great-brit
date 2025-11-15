@@ -26,16 +26,41 @@ const episodeRoutes = (router) => {
       // Delete rankings for episode 3 (legacy cleanup)
       await prisma.ranking.deleteMany({ where: { episode: 3 } });
 
-      // Create default rankings for each user and active star
-      const activeStars = await prisma.star.findMany({ where: { active: true } });
+      // Determine which stars to include in this episode
+      let starsForEpisode;
+      if (number === 1) {
+        // For episode 1, include all active stars
+        starsForEpisode = await prisma.star.findMany({ where: { active: true } });
+      } else {
+        // For subsequent episodes, copy stars from previous episode
+        const previousEpisodeStars = await prisma.episodeStar.findMany({
+          where: { episodeId: number - 1 },
+          include: { star: true },
+        });
+        starsForEpisode = previousEpisodeStars.map(es => es.star);
+
+        // If no previous episode stars found, fall back to all active stars
+        if (starsForEpisode.length === 0) {
+          starsForEpisode = await prisma.star.findMany({ where: { active: true } });
+        }
+      }
+
+      // Create episode-star relationships
+      const episodeStarsData = starsForEpisode.map(star => ({
+        episodeId: newEpisode.number,
+        starId: star.id,
+      }));
+      await prisma.episodeStar.createMany({ data: episodeStarsData });
+
+      // Create default rankings for each user and stars in this episode
       const allUsers = await prisma.user.findMany();
 
       const rankingsToCreate = [];
       for (const user of allUsers) {
-        for (let index = 0; index < activeStars.length; index++) {
+        for (let index = 0; index < starsForEpisode.length; index++) {
           rankingsToCreate.push({
             userId: user.id,
-            starId: activeStars[index].id,
+            starId: starsForEpisode[index].id,
             rank: index + 1,
             episode: newEpisode.number,
           });
@@ -150,6 +175,61 @@ const episodeRoutes = (router) => {
       });
 
       res.json({ episode: updatedEpisode });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get stars for a specific episode
+  router.get("/episodes/:episodeId/stars", authenticateUser, async (req, res) => {
+    const { episodeId } = req.params;
+    const episodeNumber = parseInt(episodeId);
+
+    try {
+      const episodeStars = await prisma.episodeStar.findMany({
+        where: { episodeId: episodeNumber },
+        include: { star: true },
+      });
+
+      const stars = episodeStars.map(es => es.star);
+      res.json({ stars });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update stars for a specific episode
+  router.put("/episodes/:episodeId/stars", authenticateUser, async (req, res) => {
+    const { episodeId } = req.params;
+    const episodeNumber = parseInt(episodeId);
+    const { starIds } = req.body; // Array of star IDs
+
+    try {
+      // Delete all existing episode-star relationships for this episode
+      await prisma.episodeStar.deleteMany({
+        where: { episodeId: episodeNumber },
+      });
+
+      // Create new episode-star relationships
+      const episodeStarsData = starIds.map(starId => ({
+        episodeId: episodeNumber,
+        starId: parseInt(starId),
+      }));
+
+      await prisma.episodeStar.createMany({
+        data: episodeStarsData,
+      });
+
+      // Fetch and return the updated stars
+      const episodeStars = await prisma.episodeStar.findMany({
+        where: { episodeId: episodeNumber },
+        include: { star: true },
+      });
+
+      const stars = episodeStars.map(es => es.star);
+      res.json({ stars });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
