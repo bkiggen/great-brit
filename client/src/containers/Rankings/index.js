@@ -8,7 +8,7 @@ import {
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
-import { Box, Button, Select, MenuItem } from "@mui/material";
+import { Box, Select, MenuItem } from "@mui/material";
 import {
   currentEpisodeSelector,
   fetchCurrentEpisode,
