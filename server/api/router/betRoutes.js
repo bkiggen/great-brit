@@ -67,6 +67,57 @@ const betRoutes = (router) => {
     }
   });
 
+  // Accept a bet
+  router.post("/bets/:betId/accept", authenticateUser, async (req, res) => {
+    const betId = parseInt(req.params.betId);
+    const userId = req.sessionUser.id;
+
+    try {
+      // Check if user is eligible for this bet
+      const bet = await prisma.bet.findUnique({
+        where: { id: betId },
+        include: {
+          eligibleUsers: true,
+          acceptedUsers: true,
+        },
+      });
+
+      if (!bet) {
+        return res.status(404).json({ message: "Bet not found" });
+      }
+
+      const isEligible = bet.eligibleUsers.some(user => user.id === userId);
+      if (!isEligible) {
+        return res.status(403).json({ message: "You are not eligible for this bet" });
+      }
+
+      const alreadyAccepted = bet.acceptedUsers.some(user => user.id === userId);
+      if (alreadyAccepted) {
+        return res.status(400).json({ message: "You have already accepted this bet" });
+      }
+
+      // Add user to acceptedUsers
+      const updatedBet = await prisma.bet.update({
+        where: { id: betId },
+        data: {
+          acceptedUsers: {
+            connect: { id: userId },
+          },
+        },
+        include: {
+          better: true,
+          eligibleUsers: true,
+          acceptedUsers: true,
+        },
+      });
+
+      res.json({ bet: updatedBet });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   router.put("/bets/:betId", authenticateUser, async (req, res) => {
     const betId = parseInt(req.params.betId);
     const { won } = req.body;

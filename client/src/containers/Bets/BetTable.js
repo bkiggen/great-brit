@@ -4,7 +4,7 @@ import { sessionSelector } from "store";
 import { Box, Button, Tooltip } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { fetchBets } from "store/betsSlice";
-import { betsSelector, updateBet, deleteBet } from "store/betsSlice";
+import { betsSelector, updateBet, deleteBet, acceptBet } from "store/betsSlice";
 import { getLowestFraction } from "helpers/getLowestFraction";
 
 const Bets = ({ episodeId, readOnly = false, admin }) => {
@@ -13,10 +13,13 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
   const { user: sessionUser } = useSelector(sessionSelector);
 
   const renderBetAcceptButton = (params) => {
-    const { better, eligibleUsers } = params.row;
+    const { better, eligibleUsers, acceptedUsers } = params.row;
 
     const yourBet = sessionUser?.id === better?.id;
     const eligibleBet = eligibleUsers?.find(
+      (user) => user.id === sessionUser?.id
+    );
+    const alreadyAccepted = acceptedUsers?.find(
       (user) => user.id === sessionUser?.id
     );
 
@@ -26,8 +29,23 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
           Your Bet
         </Button>
       );
+    } else if (alreadyAccepted) {
+      return (
+        <Button variant="contained" color="success" disabled>
+          Accepted
+        </Button>
+      );
     } else if (eligibleBet) {
-      return <Button variant="contained">Accept Bet</Button>;
+      return (
+        <Button
+          variant="contained"
+          onClick={() => {
+            dispatch(acceptBet(params.row.id));
+          }}
+        >
+          Accept Bet
+        </Button>
+      );
     } else {
       return (
         <Button variant="contained" disabled>
