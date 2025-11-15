@@ -19,7 +19,7 @@ const rankingsRoutes = (router) => {
         select: { starId: true },
       });
 
-      const episodeStarIds = episodeStars.map(es => es.starId);
+      const episodeStarIds = episodeStars.map((es) => es.starId);
 
       // Get user rankings for stars in this episode
       let userRankings = await prisma.ranking.findMany({
@@ -31,6 +31,16 @@ const rankingsRoutes = (router) => {
         include: { star: true },
         orderBy: { rank: "asc" },
       });
+
+      if (userRankings.length === 0) {
+        // If no rankings exist, create default rankings based on episode stars
+        userRankings = await Promise.all(
+          episodeStarIds.map(async (starId, index) => ({
+            star: await prisma.star.findUnique({ where: { id: starId } }),
+            rank: index + 1,
+          }))
+        );
+      }
 
       res.json({ rankings: userRankings });
     } catch (error) {
@@ -44,9 +54,13 @@ const rankingsRoutes = (router) => {
     const { rankings, episodeId } = req.body;
 
     try {
-      const episodeNumber = episodeId ? parseInt(episodeId) : (await prisma.episode.findFirst({
-        orderBy: { number: "desc" },
-      })).number;
+      const episodeNumber = episodeId
+        ? parseInt(episodeId)
+        : (
+            await prisma.episode.findFirst({
+              orderBy: { number: "desc" },
+            })
+          ).number;
 
       const userId = req.sessionUser.id;
 
