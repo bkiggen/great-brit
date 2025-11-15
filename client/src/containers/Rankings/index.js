@@ -60,9 +60,11 @@ const Rankings = () => {
     }));
 
     setItems(updatedItems);
+  };
 
-    // Auto-save rankings after reordering
-    dispatch(postRankings({ rankings: updatedItems, episodeId }));
+  const handleDrop = () => {
+    // Save rankings when item is dropped
+    dispatch(postRankings({ rankings: items, episodeId }));
   };
 
   // Check if the selected episode is before the current episode
@@ -92,6 +94,7 @@ const Rankings = () => {
             item={item}
             index={idx}
             moveItem={moveItem}
+            onDrop={handleDrop}
             disabled={isLocked}
           />
         ))}

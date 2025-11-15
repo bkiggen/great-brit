@@ -6,7 +6,7 @@ import LockIcon from "@mui/icons-material/Lock";
 
 const ItemType = "RANKING_ITEM";
 
-const DraggableRankingItem = ({ item, index, moveItem, disabled = false }) => {
+const DraggableRankingItem = ({ item, index, moveItem, onDrop, disabled = false }) => {
   const ref = useRef(null);
 
   const [{ isDragging }, drag] = useDrag({
@@ -25,6 +25,12 @@ const DraggableRankingItem = ({ item, index, moveItem, disabled = false }) => {
       if (!disabled && draggedItem.index !== index) {
         moveItem(draggedItem.index, index);
         draggedItem.index = index;
+      }
+    },
+    drop: () => {
+      // Call onDrop when item is dropped
+      if (onDrop && !disabled) {
+        onDrop();
       }
     },
     collect: (monitor) => ({

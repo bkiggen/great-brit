@@ -70,8 +70,18 @@ const rankingsRoutes = (router) => {
         };
       });
 
+      // Remove duplicates based on starId (keep first occurrence)
+      const seenStarIds = new Set();
+      const uniqueRankings = rankingsToCreate.filter((ranking) => {
+        if (seenStarIds.has(ranking.starId)) {
+          return false;
+        }
+        seenStarIds.add(ranking.starId);
+        return true;
+      });
+
       await prisma.ranking.createMany({
-        data: rankingsToCreate,
+        data: uniqueRankings,
       });
 
       // Fetch the created rankings with star data
