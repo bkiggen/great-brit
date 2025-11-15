@@ -41,12 +41,12 @@ const rankingsRoutes = (router) => {
 
   // UPDATE RANKINGS FOR USER
   router.post("/rankings", authenticateUser, async (req, res) => {
-    const { rankings } = req.body;
+    const { rankings, episodeId } = req.body;
 
     try {
-      const latestEpisode = await prisma.episode.findFirst({
+      const episodeNumber = episodeId ? parseInt(episodeId) : (await prisma.episode.findFirst({
         orderBy: { number: "desc" },
-      });
+      })).number;
 
       const userId = req.sessionUser.id;
 
@@ -54,7 +54,7 @@ const rankingsRoutes = (router) => {
       await prisma.ranking.deleteMany({
         where: {
           userId,
-          episode: latestEpisode.number,
+          episode: episodeNumber,
         },
       });
 
@@ -66,7 +66,7 @@ const rankingsRoutes = (router) => {
           userId,
           starId: parseInt(starId),
           rank: rankedStar.rank,
-          episode: latestEpisode.number,
+          episode: episodeNumber,
         };
       });
 
@@ -78,7 +78,7 @@ const rankingsRoutes = (router) => {
       const populatedRankings = await prisma.ranking.findMany({
         where: {
           userId,
-          episode: latestEpisode.number,
+          episode: episodeNumber,
         },
         include: { star: true },
         orderBy: { rank: "asc" },

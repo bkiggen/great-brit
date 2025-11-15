@@ -6,7 +6,9 @@ const episodeRoutes = (router) => {
   // Get all episodes
   router.get("/episodes", authenticateUser, async (req, res) => {
     try {
-      const episodes = await prisma.episode.findMany();
+      const episodes = await prisma.episode.findMany({
+        orderBy: { number: "asc" },
+      });
       res.json({ episodes });
     } catch (error) {
       console.error(error);

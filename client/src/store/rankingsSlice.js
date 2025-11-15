@@ -18,8 +18,8 @@ export const fetchRankings = createAsyncThunk(
 
 export const postRankings = createAsyncThunk(
   "rankings/postRankings",
-  async (rankings) => {
-    const data = await makeRequest.post("/rankings", { rankings });
+  async ({ rankings, episodeId }) => {
+    const data = await makeRequest.post("/rankings", { rankings, episodeId });
 
     return data.rankings;
   }

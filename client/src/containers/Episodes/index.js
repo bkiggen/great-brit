@@ -28,7 +28,11 @@ const Episodes = ({ admin }) => {
 
   useEffect(() => {
     if (episodes.length > 0) {
-      setActive(episodes[episodes.length - 1]);
+      const currentEpisode = episodes.find((ep) => ep.current);
+      if (currentEpisode) {
+        setActive(currentEpisode);
+        return;
+      }
     }
   }, [episodes]);
 
@@ -61,14 +65,16 @@ const Episodes = ({ admin }) => {
             }}
           >
             <h1>Episode {active?.number}</h1>
-            <Button
-              variant="contained"
-              onClick={() => {
-                dispatch(calculateDeltas({ episodeId: active?.number }));
-              }}
-            >
-              Calculate Deltas
-            </Button>
+            {admin && (
+              <Button
+                variant="contained"
+                onClick={() => {
+                  dispatch(calculateDeltas({ episodeId: active?.number }));
+                }}
+              >
+                Calculate Deltas
+              </Button>
+            )}
           </Box>
           {active && <Events episodeId={active?.number} />}
           {active && admin && <ManageStars episodeId={active?.number} />}
