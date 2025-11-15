@@ -33,7 +33,21 @@ const StarsList = () => {
         );
       },
     },
-    { field: "bio", headerName: "Bio", width: 300, flex: 1 },
+    {
+      field: "bio",
+      headerName: "Bio",
+      flex: 1,
+      renderCell: (params) => (
+        <div style={{
+          whiteSpace: 'normal',
+          wordWrap: 'break-word',
+          lineHeight: '1.5',
+          padding: '8px 0'
+        }}>
+          {params.value}
+        </div>
+      )
+    },
   ];
 
   useEffect(() => {
@@ -51,8 +65,13 @@ const StarsList = () => {
         hideFooterPagination
         hideFooter
         checkboxSelection={false}
-        rowHeight={120}
+        getRowHeight={() => 'auto'}
         autoHeight
+        sx={{
+          '&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell': { py: '8px' },
+          '&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell': { py: '15px' },
+          '&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell': { py: '22px' },
+        }}
       />
     </Box>
   );
