@@ -9,6 +9,7 @@ import {
   Box,
   Grid,
   Typography,
+  InputAdornment,
 } from "@mui/material";
 import { createBet } from "store/betsSlice";
 import { fetchUsers, usersSelector } from "store/usersSlice";
@@ -127,12 +128,22 @@ const Bets = () => {
             variant="outlined"
             value={maxLose}
             onChange={(e) => setMaxLose(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">£</InputAdornment>
+              ),
+            }}
             sx={{ marginRight: "12px" }}
           />
           <TextField
             label="Max Win"
             variant="outlined"
             value={maxLose ? maxWin : ""}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">£</InputAdornment>
+              ),
+            }}
             disabled
           />
         </Box>

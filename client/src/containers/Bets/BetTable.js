@@ -209,6 +209,9 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
       align: "center",
       headerAlign: "center",
       flex: 1,
+      renderCell: (params) => {
+        return <div>£{params.row.maxLose}</div>;
+      },
     },
     {
       field: "acceptedUsers",
