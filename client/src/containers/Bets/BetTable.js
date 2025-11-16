@@ -286,7 +286,24 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
       flex: 1,
       renderCell: (params) => {
         if (params.row.won === null) {
-          return null;
+          if (!admin) return null;
+
+          return (
+            <Button
+              variant="outlined"
+              sx={{ cursor: "pointer" }}
+              onClick={() => {
+                dispatch(
+                  updateBet({
+                    betId: params.row.id,
+                    won: true,
+                  })
+                );
+              }}
+            >
+              Mark Result
+            </Button>
+          );
         }
 
         return (

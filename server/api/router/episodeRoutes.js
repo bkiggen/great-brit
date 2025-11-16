@@ -290,7 +290,10 @@ const episodeRoutes = (router) => {
       const allUsers = await prisma.user.findMany();
       const eventsForEpisode = await prisma.event.findMany({
         where: { episodeId: episodeNumber },
-        include: { star: true },
+        include: {
+          star: true,
+          eventType: true,
+        },
       });
       const split = splitArraysByLength[episode.number];
 
@@ -309,26 +312,34 @@ const episodeRoutes = (router) => {
           where: {
             OR: [
               { betterId: user.id },
-              { eligibleUsers: { some: { id: user.id } } },
+              { acceptedUsers: { some: { id: user.id } } },
             ],
             episode: episode.number,
           },
           include: {
             better: true,
-            eligibleUsers: true,
+            acceptedUsers: true,
           },
         });
 
         for (const userBet of userBets) {
-          const { better, won, maxLose, odds, eligibleUsers } = userBet;
+          const { better, won, maxLose, odds, acceptedUsers } = userBet;
+
+          // Skip if bet hasn't been resolved yet
+          if (won === null) continue;
+
           const isUserBetter = better.id === user.id;
 
           let deltaChange = 0;
           if (isUserBetter) {
+            // Better wins: gets maxLose from each accepted user, multiplied by inverse odds
+            // Better loses: loses maxLose to each accepted user
             deltaChange = won
-              ? maxLose * eligibleUsers.length * (1 / odds)
-              : -maxLose * eligibleUsers.length;
+              ? maxLose * acceptedUsers.length * (1 / odds)
+              : -maxLose * acceptedUsers.length;
           } else {
+            // Acceptor wins (bet lost): gets maxLose from better
+            // Acceptor loses (bet won): loses maxLose * (1/odds) to better
             deltaChange = won ? -maxLose * (1 / odds) : maxLose;
           }
 
@@ -343,7 +354,7 @@ const episodeRoutes = (router) => {
             return event.star && event.star.id === ranking.star.id;
           });
           const total = eventsForStar.reduce((acc, event) => {
-            return acc + event.baseAmount;
+            return acc + (event.eventType?.value || 0);
           }, 0);
           const delta = multiplier * total;
           totalDelta += delta;
