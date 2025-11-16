@@ -18,7 +18,13 @@ import {
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { fetchBets } from "store/betsSlice";
-import { betsSelector, updateBet, deleteBet, acceptBet, editBet } from "store/betsSlice";
+import {
+  betsSelector,
+  updateBet,
+  deleteBet,
+  acceptBet,
+  editBet,
+} from "store/betsSlice";
 import { usersSelector } from "store/usersSlice";
 import { getLowestFraction } from "helpers/getLowestFraction";
 
@@ -106,11 +112,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
         return (
           <Tooltip title="Cannot edit - bet has been accepted by other users">
             <span>
-              <Button
-                variant="contained"
-                color="primary"
-                disabled
-              >
+              <Button variant="contained" color="primary" disabled>
                 Edit Bet
               </Button>
             </span>
@@ -129,7 +131,18 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
       );
     } else if (alreadyAccepted) {
       return (
-        <Button variant="contained" color="success" disabled>
+        <Button
+          variant="contained"
+          disabled
+          sx={{
+            backgroundColor: "#614051",
+            color: "white",
+            "&:disabled": {
+              backgroundColor: "#614051",
+              color: "white",
+            }
+          }}
+        >
           Accepted
         </Button>
       );
@@ -196,16 +209,57 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
       flex: 1,
     },
     {
-      field: "eligibleUsers",
-      headerName: "Suckers",
+      field: "acceptedUsers",
+      headerName: "Accepted",
+      minWidth: 150,
       flex: 1,
-      renderCell: (params) => (
-        <Box sx={{ padding: "12px" }}>
-          {params.row.eligibleUsers?.map((user) => (
-            <div key={user.id}>{user.firstName}</div>
-          ))}
-        </Box>
-      ),
+      renderCell: (params) => {
+        const acceptedUsers = params.row.acceptedUsers || [];
+        if (acceptedUsers.length === 0) {
+          return <Box sx={{ padding: "12px", color: "#999" }}>None</Box>;
+        }
+        return (
+          <Box sx={{ padding: "12px" }}>
+            {acceptedUsers.map((user) => {
+              const acceptedAmount = (
+                parseFloat(params.row.maxLose) *
+                (parseFloat(params.row.odds))
+              ).toFixed(0);
+              return (
+                <div key={user.id}>
+                  {user.firstName} ({acceptedAmount})
+                </div>
+              );
+            })}
+          </Box>
+        );
+      },
+    },
+    {
+      field: "eligibleUsers",
+      headerName: "Eligible",
+      minWidth: 150,
+      flex: 1,
+      renderCell: (params) => {
+        const eligibleUsers = params.row.eligibleUsers || [];
+        const acceptedUsers = params.row.acceptedUsers || [];
+        const acceptedUserIds = new Set(acceptedUsers.map((u) => u.id));
+        const notAcceptedEligible = eligibleUsers.filter(
+          (user) => !acceptedUserIds.has(user.id)
+        );
+
+        if (notAcceptedEligible.length === 0) {
+          return <Box sx={{ padding: "12px", color: "#999" }}>None</Box>;
+        }
+
+        return (
+          <Box sx={{ padding: "12px" }}>
+            {notAcceptedEligible.map((user) => (
+              <div key={user.id}>{user.firstName}</div>
+            ))}
+          </Box>
+        );
+      },
     },
     ...(readOnly
       ? []
@@ -214,6 +268,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
             field: "action",
             headerName: "Action",
             flex: 1,
+            minWidth: 150,
             align: "center",
             headerAlign: "center",
             renderCell: renderBetAcceptButton,
@@ -301,14 +356,21 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
         />
       </Box>
 
-      <Dialog open={editDialogOpen} onClose={handleEditCancel} maxWidth="md" fullWidth>
+      <Dialog
+        open={editDialogOpen}
+        onClose={handleEditCancel}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Edit Bet</DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
             <TextField
               label="Description"
               value={editFormData.description}
-              onChange={(e) => handleEditFormChange("description", e.target.value)}
+              onChange={(e) =>
+                handleEditFormChange("description", e.target.value)
+              }
               fullWidth
               multiline
               rows={3}
@@ -326,13 +388,13 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
                 }
                 sx={{ minWidth: "100px" }}
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map(
-                  (odds) => (
-                    <MenuItem key={odds} value={odds}>
-                      {odds}
-                    </MenuItem>
-                  )
-                )}
+                {[
+                  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+                ].map((odds) => (
+                  <MenuItem key={odds} value={odds}>
+                    {odds}
+                  </MenuItem>
+                ))}
               </TextField>
               <span>to</span>
               <TextField
@@ -358,7 +420,9 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
                 label="Max Loss"
                 type="number"
                 value={editFormData.maxLose}
-                onChange={(e) => handleEditFormChange("maxLose", e.target.value)}
+                onChange={(e) =>
+                  handleEditFormChange("maxLose", e.target.value)
+                }
                 sx={{ flex: 1 }}
               />
               <TextField
@@ -382,7 +446,9 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
               <Select
                 multiple
                 value={editFormData.eligibleUsers}
-                onChange={(e) => handleEditFormChange("eligibleUsers", e.target.value)}
+                onChange={(e) =>
+                  handleEditFormChange("eligibleUsers", e.target.value)
+                }
                 renderValue={(selected) => (
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {selected.map((userId) => {
@@ -390,7 +456,9 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
                       return (
                         <Chip
                           key={userId}
-                          label={user ? `${user.firstName} ${user.lastName}` : userId}
+                          label={
+                            user ? `${user.firstName} ${user.lastName}` : userId
+                          }
                         />
                       );
                     })}
