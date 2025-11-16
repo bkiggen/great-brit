@@ -100,6 +100,24 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
     );
 
     if (yourBet) {
+      const hasAcceptedUsers = acceptedUsers && acceptedUsers.length > 0;
+
+      if (hasAcceptedUsers) {
+        return (
+          <Tooltip title="Cannot edit - bet has been accepted by other users">
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled
+              >
+                Edit Bet
+              </Button>
+            </span>
+          </Tooltip>
+        );
+      }
+
       return (
         <Button
           variant="contained"
