@@ -93,7 +93,10 @@ const episodeRoutes = (router) => {
       try {
         const events = await prisma.event.findMany({
           where: { episodeId: episodeNumber },
-          include: { star: true },
+          include: {
+            star: true,
+            eventType: true,
+          },
         });
 
         res.json({ events });
@@ -111,7 +114,7 @@ const episodeRoutes = (router) => {
     async (req, res) => {
       const { episodeId } = req.params;
       const episodeNumber = parseInt(episodeId);
-      const { description, time, baseAmount, starId } = req.body;
+      const { eventTypeId, time, starId } = req.body;
 
       try {
         // Check if the episode exists
@@ -123,13 +126,31 @@ const episodeRoutes = (router) => {
           return res.status(404).json({ message: "Episode not found" });
         }
 
+        if (!eventTypeId) {
+          return res.status(400).json({ message: "Event type ID required" });
+        }
+
+        const parsedEventTypeId = parseInt(eventTypeId);
+
+        // Check if event type exists
+        const eventType = await prisma.eventType.findUnique({
+          where: { id: parsedEventTypeId },
+        });
+
+        if (!eventType) {
+          return res.status(404).json({ message: "Event type not found" });
+        }
+
         const newEvent = await prisma.event.create({
           data: {
-            description,
+            eventTypeId: parsedEventTypeId,
             time,
-            baseAmount: Number(baseAmount),
             starId: starId ? parseInt(starId) : null,
             episodeId: episodeNumber,
+          },
+          include: {
+            star: true,
+            eventType: true,
           },
         });
 
