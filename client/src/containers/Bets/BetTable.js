@@ -1,16 +1,78 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { sessionSelector } from "store";
-import { Box, Button, Tooltip } from "@mui/material";
+import {
+  Box,
+  Button,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { fetchBets } from "store/betsSlice";
-import { betsSelector, updateBet, deleteBet, acceptBet } from "store/betsSlice";
+import { betsSelector, updateBet, deleteBet, acceptBet, editBet } from "store/betsSlice";
+import { usersSelector } from "store/usersSlice";
 import { getLowestFraction } from "helpers/getLowestFraction";
 
 const Bets = ({ episodeId, readOnly = false, admin }) => {
   const dispatch = useDispatch();
   const bets = useSelector(betsSelector);
   const { user: sessionUser } = useSelector(sessionSelector);
+  const users = useSelector(usersSelector);
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingBet, setEditingBet] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    description: "",
+    odds: "",
+    maxLose: "",
+    eligibleUsers: [],
+  });
+
+  const handleEditClick = (bet) => {
+    setEditingBet(bet);
+    setEditFormData({
+      description: bet.description,
+      odds: bet.odds,
+      maxLose: bet.maxLose,
+      eligibleUsers: bet.eligibleUsers.map((user) => user.id),
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = () => {
+    dispatch(
+      editBet({
+        betId: editingBet.id,
+        description: editFormData.description,
+        odds: editFormData.odds,
+        maxLose: editFormData.maxLose,
+        eligibleUsers: editFormData.eligibleUsers,
+      })
+    );
+    setEditDialogOpen(false);
+    setEditingBet(null);
+  };
+
+  const handleEditCancel = () => {
+    setEditDialogOpen(false);
+    setEditingBet(null);
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const renderBetAcceptButton = (params) => {
     const { better, eligibleUsers, acceptedUsers } = params.row;
@@ -25,8 +87,12 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
 
     if (yourBet) {
       return (
-        <Button variant="contained" disabled>
-          Your Bet
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => handleEditClick(params.row)}
+        >
+          Edit Bet
         </Button>
       );
     } else if (alreadyAccepted) {
@@ -82,13 +148,21 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
       field: "odds",
       headerName: "Odds",
       flex: 1,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => {
         const decimal = params.row.odds;
 
         return getLowestFraction(decimal);
       },
     },
-    { field: "maxLose", headerName: "Max Bet", flex: 1 },
+    {
+      field: "maxLose",
+      headerName: "Max Bet",
+      align: "center",
+      headerAlign: "center",
+      flex: 1,
+    },
     {
       field: "eligibleUsers",
       headerName: "Suckers",
@@ -108,14 +182,22 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
             field: "action",
             headerName: "Action",
             flex: 1,
+            align: "center",
+            headerAlign: "center",
             renderCell: renderBetAcceptButton,
           },
         ]),
     {
       field: "won",
       headerName: "Won",
+      align: "center",
+      headerAlign: "center",
       flex: 1,
       renderCell: (params) => {
+        if (params.row.won === null) {
+          return null;
+        }
+
         return (
           <Button
             variant="contained"
@@ -142,6 +224,8 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
           {
             field: "delete",
             headerName: "Delete",
+            align: "center",
+            headerAlign: "center",
             flex: 1,
             renderCell: (params) => {
               return (
@@ -169,20 +253,88 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
   }, [episodeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Box style={{ marginTop: "20px", background: "white" }}>
-      <DataGrid
-        rows={bets}
-        columns={columns}
-        disableColumnMenu
-        disableColumnFilter
-        sortingOrder={["desc", "asc", null]}
-        hideFooterPagination
-        hideFooter
-        checkboxSelection={false}
-        rowHeight={120}
-        autoHeight
-      />
-    </Box>
+    <>
+      <Box style={{ marginTop: "20px", background: "white" }}>
+        <DataGrid
+          rows={bets}
+          columns={columns}
+          disableColumnMenu
+          disableColumnFilter
+          sortingOrder={["desc", "asc", null]}
+          hideFooterPagination
+          hideFooter
+          checkboxSelection={false}
+          rowHeight={120}
+          autoHeight
+        />
+      </Box>
+
+      <Dialog open={editDialogOpen} onClose={handleEditCancel} maxWidth="md" fullWidth>
+        <DialogTitle>Edit Bet</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
+            <TextField
+              label="Description"
+              value={editFormData.description}
+              onChange={(e) => handleEditFormChange("description", e.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+            />
+            <TextField
+              label="Odds (decimal)"
+              type="number"
+              value={editFormData.odds}
+              onChange={(e) => handleEditFormChange("odds", e.target.value)}
+              fullWidth
+              inputProps={{ step: 0.1 }}
+            />
+            <TextField
+              label="Max Bet"
+              type="number"
+              value={editFormData.maxLose}
+              onChange={(e) => handleEditFormChange("maxLose", e.target.value)}
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Eligible Users</InputLabel>
+              <Select
+                multiple
+                value={editFormData.eligibleUsers}
+                onChange={(e) => handleEditFormChange("eligibleUsers", e.target.value)}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((userId) => {
+                      const user = users.find((u) => u.id === userId);
+                      return (
+                        <Chip
+                          key={userId}
+                          label={user ? `${user.firstName} ${user.lastName}` : userId}
+                        />
+                      );
+                    })}
+                  </Box>
+                )}
+              >
+                {users
+                  .filter((user) => user.id !== sessionUser?.id)
+                  .map((user) => (
+                    <MenuItem key={user.id} value={user.id}>
+                      {`${user.firstName} ${user.lastName}`}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEditCancel}>Cancel</Button>
+          <Button onClick={handleEditSave} variant="contained" color="primary">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

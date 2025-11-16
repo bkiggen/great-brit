@@ -118,6 +118,57 @@ const betRoutes = (router) => {
     }
   });
 
+  // Edit bet details (only for bet owner)
+  router.patch("/bets/:betId", authenticateUser, async (req, res) => {
+    const betId = parseInt(req.params.betId);
+    const { description, odds, maxLose, eligibleUsers } = req.body;
+
+    try {
+      // Check if bet exists and user is the owner
+      const bet = await prisma.bet.findUnique({
+        where: { id: betId },
+      });
+
+      if (!bet) {
+        return res.status(404).json({ message: "Bet not found" });
+      }
+
+      if (bet.betterId !== req.sessionUser.id) {
+        return res.status(403).json({ message: "You can only edit your own bets" });
+      }
+
+      // Prepare update data
+      const updateData = {};
+      if (description !== undefined) updateData.description = description;
+      if (odds !== undefined) updateData.odds = parseFloat(odds);
+      if (maxLose !== undefined) updateData.maxLose = parseFloat(maxLose);
+
+      // Handle eligible users update
+      if (eligibleUsers !== undefined) {
+        // Disconnect all current eligible users and reconnect new ones
+        updateData.eligibleUsers = {
+          set: eligibleUsers.filter(Boolean).map((userId) => ({ id: userId })),
+        };
+      }
+
+      const updatedBet = await prisma.bet.update({
+        where: { id: betId },
+        data: updateData,
+        include: {
+          better: true,
+          eligibleUsers: true,
+          acceptedUsers: true,
+        },
+      });
+
+      res.json({ bet: updatedBet });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update bet won/lost status (admin only)
   router.put("/bets/:betId", authenticateUser, async (req, res) => {
     const betId = parseInt(req.params.betId);
     const { won } = req.body;

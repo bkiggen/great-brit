@@ -32,6 +32,12 @@ export const updateBet = createAsyncThunk("bets/updateBet", async (betData) => {
   return data.bet;
 });
 
+export const editBet = createAsyncThunk("bets/editBet", async (betData) => {
+  const data = await makeRequest.patch(`/bets/${betData.betId}`, betData);
+
+  return data.bet;
+});
+
 export const deleteBet = createAsyncThunk("bets/deleteBet", async (betId) => {
   await makeRequest.delete(`/bets/${betId}`);
   return betId;
@@ -56,6 +62,12 @@ export const betsSlice = createSlice({
     builder.addCase(updateBet.fulfilled, (state, action) => {
       const index = state.list.findIndex((bet) => bet.id === action.payload.id);
       state.list[index] = action.payload;
+    });
+    builder.addCase(editBet.fulfilled, (state, action) => {
+      const index = state.list.findIndex((bet) => bet.id === action.payload.id);
+      if (index !== -1) {
+        state.list[index] = action.payload;
+      }
     });
     builder.addCase(deleteBet.fulfilled, (state, action) => {
       const index = state.list.findIndex((bet) => bet.id === action.payload);
