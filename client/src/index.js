@@ -5,6 +5,7 @@ import { RouterProvider } from "react-router-dom";
 import { Provider } from "react-redux";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { SnackbarProvider } from "notistack";
 import { store, persistor } from "./store";
 import App from "./App";
 import router from "./router";
@@ -16,9 +17,18 @@ root.render(
     <PersistGate loading={null} persistor={persistor}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <RouterProvider router={router}>
-          <App />
-        </RouterProvider>
+        <SnackbarProvider
+          maxSnack={3}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          autoHideDuration={3000}
+        >
+          <RouterProvider router={router}>
+            <App />
+          </RouterProvider>
+        </SnackbarProvider>
       </ThemeProvider>
     </PersistGate>
   </Provider>

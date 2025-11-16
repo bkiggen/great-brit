@@ -35,11 +35,19 @@ export const createEpisode = createAsyncThunk(
 // Thunk to calculate deltas of current episode
 export const calculateDeltas = createAsyncThunk(
   "episodes/calculateDeltas",
-  async ({ episodeId }) => {
-    const data = await makeRequest.post(
-      `/episodes/${episodeId}/calculateDeltas`
-    );
-    return data.episode;
+  async ({ episodeId, force = false }, { rejectWithValue }) => {
+    try {
+      const data = await makeRequest.post(
+        `/episodes/${episodeId}/calculateDeltas`,
+        { force }
+      );
+      return data.episode;
+    } catch (error) {
+      if (error.response?.data?.error === "USERS_WITHOUT_RANKINGS") {
+        return rejectWithValue(error.response.data);
+      }
+      throw error;
+    }
   }
 );
 
@@ -65,6 +73,15 @@ export const fetchEpisodeStars = createAsyncThunk(
   async (episodeId) => {
     const data = await makeRequest.get(`/episodes/${episodeId}/stars`);
     return data.stars;
+  }
+);
+
+// Thunk to clear deltas for a specific episode
+export const clearDeltas = createAsyncThunk(
+  "episodes/clearDeltas",
+  async (episodeId) => {
+    await makeRequest.delete(`/episodes/${episodeId}/deltas`);
+    return episodeId;
   }
 );
 
@@ -164,6 +181,16 @@ const episodesSlice = createSlice({
         state.episodeStars = action.payload;
       })
       .addCase(updateEpisodeStars.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(clearDeltas.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(clearDeltas.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(clearDeltas.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

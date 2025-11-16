@@ -276,6 +276,7 @@ const episodeRoutes = (router) => {
     authenticateUser,
     async (req, res) => {
       const { episodeId } = req.params;
+      const { force } = req.body; // Allow forcing calculation even if users haven't ranked
       const episodeNumber = parseInt(episodeId);
 
       const episode = await prisma.episode.findUnique({
@@ -287,7 +288,41 @@ const episodeRoutes = (router) => {
       }
 
       // get all rankings and calculate deltas
-      const allUsers = await prisma.user.findMany();
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+
+      // Check if all users have rankings for this episode
+      if (!force) {
+        const usersWithoutRankings = [];
+        for (const user of allUsers) {
+          const userRankings = await prisma.ranking.findMany({
+            where: {
+              userId: user.id,
+              episode: episodeNumber,
+            },
+          });
+
+          if (userRankings.length === 0) {
+            usersWithoutRankings.push({
+              id: user.id,
+              name: `${user.firstName} ${user.lastName}`,
+            });
+          }
+        }
+
+        if (usersWithoutRankings.length > 0) {
+          return res.status(400).json({
+            error: "USERS_WITHOUT_RANKINGS",
+            message: "Some users have not set their rankings for this episode",
+            usersWithoutRankings,
+          });
+        }
+      }
       const eventsForEpisode = await prisma.event.findMany({
         where: { episodeId: episodeNumber },
         include: {
@@ -383,6 +418,36 @@ const episodeRoutes = (router) => {
       await Promise.all(userDeltaPromises);
 
       res.json({});
+    }
+  );
+
+  // Clear deltas for a specific episode
+  router.delete(
+    "/episodes/:episodeId/deltas",
+    authenticateUser,
+    async (req, res) => {
+      const { episodeId } = req.params;
+      const episodeNumber = parseInt(episodeId);
+
+      try {
+        const episode = await prisma.episode.findUnique({
+          where: { number: episodeNumber },
+        });
+
+        if (!episode) {
+          return res.status(404).json({ message: "Episode not found" });
+        }
+
+        // Delete all user deltas for this episode
+        await prisma.userDelta.deleteMany({
+          where: { episodeId: episodeNumber },
+        });
+
+        res.json({ message: "Deltas cleared successfully" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+      }
     }
   );
 

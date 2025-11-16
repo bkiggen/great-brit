@@ -1,4 +1,29 @@
 import { store } from "../store";
+import { showSuccess, showError } from "./notifier";
+
+// List of success messages for different operations
+const getSuccessMessage = (method, url) => {
+  // Extract resource name from URL
+  const urlParts = url.split("/").filter(Boolean);
+  const resource = urlParts[urlParts.length - 1];
+
+  switch (method) {
+    case "POST":
+      if (url.includes("/accept")) return "Bet accepted successfully";
+      if (url.includes("/calculateDeltas")) return "Deltas calculated successfully";
+      if (url.includes("/current")) return "Current episode set successfully";
+      return "Created successfully";
+    case "PATCH":
+      return "Updated successfully";
+    case "PUT":
+      return "Updated successfully";
+    case "DELETE":
+      if (url.includes("/deltas")) return "Deltas cleared successfully";
+      return "Deleted successfully";
+    default:
+      return "Success";
+  }
+};
 
 export const fetchFromApi = async (url, method, body) => {
   const state = store.getState();
@@ -35,10 +60,29 @@ export const fetchFromApi = async (url, method, body) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.message);
+    const error = new Error(errorData.message || "Request failed");
+    error.response = {
+      status: res.status,
+      data: errorData,
+    };
+
+    // Show error toast unless it's the calculateDeltas validation error
+    // (which shows a confirmation dialog instead)
+    if (errorData.error !== "USERS_WITHOUT_RANKINGS") {
+      showError(errorData.message || "An error occurred");
+    }
+
+    throw error;
   }
 
   const data = await res.json();
+
+  // Show success toast for non-GET requests
+  if (method !== "GET") {
+    const successMessage = getSuccessMessage(method, url);
+    showSuccess(successMessage);
+  }
+
   return data;
 };
 

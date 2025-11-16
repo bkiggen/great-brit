@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEpisodes, calculateDeltas } from "store/episodesSlice";
+import { fetchEpisodes, calculateDeltas, clearDeltas } from "store/episodesSlice";
 import { fetchStars } from "store/starsSlice";
-import { Button, Typography, Box } from "@mui/material";
+import {
+  Button,
+  Typography,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 
 import BetTable from "containers/Bets/BetTable";
 import CreateEpisode from "./CreateEpisode";
@@ -16,9 +27,51 @@ const Episodes = ({ admin }) => {
   const episodes = useSelector((state) => state.episodes.list);
 
   const [active, setActive] = useState(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [usersWithoutRankings, setUsersWithoutRankings] = useState([]);
+  const [clearDeltasDialogOpen, setClearDeltasDialogOpen] = useState(false);
 
   const handleTabClick = (episodeId) => {
     setActive(episodeId);
+  };
+
+  const handleCalculateDeltas = async (force = false) => {
+    const result = await dispatch(
+      calculateDeltas({ episodeId: active?.number, force })
+    );
+
+    if (calculateDeltas.rejected.match(result)) {
+      // Check if it's the validation error
+      if (result.payload?.error === "USERS_WITHOUT_RANKINGS") {
+        setUsersWithoutRankings(result.payload.usersWithoutRankings);
+        setConfirmDialogOpen(true);
+      }
+    } else if (calculateDeltas.fulfilled.match(result)) {
+      // Close dialog on success
+      setConfirmDialogOpen(false);
+    }
+  };
+
+  const handleForceCalculate = () => {
+    handleCalculateDeltas(true);
+  };
+
+  const handleCancelConfirm = () => {
+    setConfirmDialogOpen(false);
+    setUsersWithoutRankings([]);
+  };
+
+  const handleClearDeltas = () => {
+    setClearDeltasDialogOpen(true);
+  };
+
+  const handleConfirmClearDeltas = () => {
+    dispatch(clearDeltas(active?.number));
+    setClearDeltasDialogOpen(false);
+  };
+
+  const handleCancelClearDeltas = () => {
+    setClearDeltasDialogOpen(false);
   };
 
   useEffect(() => {
@@ -66,14 +119,21 @@ const Episodes = ({ admin }) => {
           >
             <h1>Episode {active?.number}</h1>
             {admin && (
-              <Button
-                variant="contained"
-                onClick={() => {
-                  dispatch(calculateDeltas({ episodeId: active?.number }));
-                }}
-              >
-                Calculate Deltas
-              </Button>
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={handleClearDeltas}
+                >
+                  Clear Deltas
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => handleCalculateDeltas()}
+                >
+                  Calculate Deltas
+                </Button>
+              </Box>
             )}
           </Box>
           {active && <Events episodeId={active?.number} />}
@@ -91,6 +151,70 @@ const Episodes = ({ admin }) => {
           )}
         </div>
       </div>
+
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={handleCancelConfirm}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Users Haven't Ranked Yet</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            The following users have not set their rankings for Episode{" "}
+            {active?.number}:
+          </Typography>
+          <List>
+            {usersWithoutRankings.map((user) => (
+              <ListItem key={user.id}>
+                <ListItemText primary={user.name} />
+              </ListItem>
+            ))}
+          </List>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Do you want to calculate deltas anyway?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelConfirm}>Cancel</Button>
+          <Button
+            onClick={handleForceCalculate}
+            variant="contained"
+            color="warning"
+          >
+            Force Calculate
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={clearDeltasDialogOpen}
+        onClose={handleCancelClearDeltas}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Clear Deltas</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            Are you sure you want to clear all deltas for Episode{" "}
+            {active?.number}?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            This action will remove all calculated delta values for this episode.
+            You can recalculate them later.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelClearDeltas}>Cancel</Button>
+          <Button
+            onClick={handleConfirmClearDeltas}
+            variant="contained"
+            color="error"
+          >
+            Clear Deltas
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

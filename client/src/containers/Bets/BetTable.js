@@ -283,6 +283,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
       headerName: "Won",
       align: "center",
       headerAlign: "center",
+      minWidth: 100,
       flex: 1,
       renderCell: (params) => {
         if (params.row.won === null) {
