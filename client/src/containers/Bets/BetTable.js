@@ -318,6 +318,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
             align: "center",
             headerAlign: "center",
             flex: 1,
+            minWidth: 100,
             renderCell: (params) => {
               return (
                 <Button

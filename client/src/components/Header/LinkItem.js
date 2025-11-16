@@ -9,7 +9,13 @@ const LinkItem = ({ to, label }) => {
 
   return (
     <Link to={to}>
-      <Button variant="text">
+      <Button
+        variant="text"
+        sx={{
+          "&:hover": { boxShadow: "none", color: "transparent" },
+          "&:hover > *": { color: "lightpink" },
+        }}
+      >
         <Typography sx={{ color: isActive ? "lightpink" : "white" }}>
           {label}
         </Typography>

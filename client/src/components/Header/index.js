@@ -3,10 +3,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { sessionSelector } from "store";
 import { useSelector, useDispatch } from "react-redux";
 import { getInitials } from "helpers/getInitials";
-import { Button, Card, Typography, Box, Menu, MenuItem } from "@mui/material";
+import {
+  Button,
+  IconButton,
+  Card,
+  Typography,
+  Box,
+  Menu,
+  MenuItem,
+} from "@mui/material";
 import { logoutUser } from "store/sessionSlice";
 import LinkItem from "./LinkItem";
-// import ChatWidget from "components/ChatWidget";
 import Tent from "components/icons/Tent";
 import { styles } from "./styles";
 
@@ -24,30 +31,6 @@ const Header = ({ socket }) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  // const createNewRoom = () => {
-  //   const roomId = uuidv4();
-  //   navigate(`/room/${roomId}`);
-  //   socket.emit("new-room-created", { roomId });
-  //   setRooms([...rooms, roomId]);
-  // };
-
-  // const fetchRooms = async () => {
-  //   const res = await fetch("http://localhost:4000/rooms");
-  //   const data = await res.json();
-  //   setRooms(data.rooms);
-  // };
-
-  // useEffect(() => {
-  //   fetchRooms();
-  // }, [socket]);
-
-  // const login = () => {
-  //   const userId = uuidv4();
-
-  //   Cookies.setItem("userId", userId);
-  //   navigate("/");
-  // };
 
   const handleProfile = () => {
     handleClose();
@@ -90,17 +73,29 @@ const Header = ({ socket }) => {
         <Box>
           {session.sessionToken ? (
             <>
-              <Button
+              <IconButton
                 variant="text"
                 onClick={handleClick}
                 aria-controls={open ? "account-menu" : undefined}
                 aria-haspopup="true"
                 aria-expanded={open ? "true" : undefined}
+                sx={{
+                  width: "30px",
+                  height: "30px",
+                  borderRadius: "50%",
+                  backgroundColor: "#ffffff",
+                  color: "#1B7B9F",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  fontWeight: "bold",
+                  marginRight: "24px",
+                  fontSize: "16px",
+                  "&:hover": { backgroundColor: "#e0e0e0" },
+                }}
               >
-                <div className="logout">
-                  {getInitials(session.user.firstName, session.user.lastName)}
-                </div>
-              </Button>
+                {getInitials(session.user.firstName, session.user.lastName)}
+              </IconButton>
               <Menu
                 id="account-menu"
                 anchorEl={anchorEl}
@@ -109,9 +104,14 @@ const Header = ({ socket }) => {
                 MenuListProps={{
                   "aria-labelledby": "basic-button",
                 }}
+                sx={{ mt: "8px" }}
               >
-                <MenuItem onClick={handleProfile}>Profile</MenuItem>
-                <MenuItem onClick={logout}>Logout</MenuItem>
+                <MenuItem sx={{ minWidth: "200px" }} onClick={handleProfile}>
+                  Profile
+                </MenuItem>
+                <MenuItem sx={{ minWidth: "200px" }} onClick={logout}>
+                  Logout
+                </MenuItem>
               </Menu>
             </>
           ) : (
@@ -123,7 +123,6 @@ const Header = ({ socket }) => {
           )}
         </Box>
       </Card>
-      {/* <ChatWidget socket={socket} /> */}
     </div>
   );
 };
