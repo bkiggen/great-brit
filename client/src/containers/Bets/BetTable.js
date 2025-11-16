@@ -32,16 +32,30 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
   const [editingBet, setEditingBet] = useState(null);
   const [editFormData, setEditFormData] = useState({
     description: "",
-    odds: "",
+    selectedOdds: [1, 1],
     maxLose: "",
     eligibleUsers: [],
   });
+
+  // Helper function to convert decimal odds to ratio (approximation)
+  const decimalToRatio = (decimal) => {
+    // Try to find a simple ratio that equals the decimal
+    for (let denominator = 1; denominator <= 12; denominator++) {
+      for (let numerator = 1; numerator <= 18; numerator++) {
+        if (Math.abs(numerator / denominator - decimal) < 0.01) {
+          return [numerator, denominator];
+        }
+      }
+    }
+    // Default fallback
+    return [Math.round(decimal), 1];
+  };
 
   const handleEditClick = (bet) => {
     setEditingBet(bet);
     setEditFormData({
       description: bet.description,
-      odds: bet.odds,
+      selectedOdds: decimalToRatio(bet.odds),
       maxLose: bet.maxLose,
       eligibleUsers: bet.eligibleUsers.map((user) => user.id),
     });
@@ -53,7 +67,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
       editBet({
         betId: editingBet.id,
         description: editFormData.description,
-        odds: editFormData.odds,
+        odds: editFormData.selectedOdds[0] / editFormData.selectedOdds[1],
         maxLose: editFormData.maxLose,
         eligibleUsers: editFormData.eligibleUsers,
       })
@@ -281,21 +295,70 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
               multiline
               rows={3}
             />
-            <TextField
-              label="Odds (decimal)"
-              type="number"
-              value={editFormData.odds}
-              onChange={(e) => handleEditFormChange("odds", e.target.value)}
-              fullWidth
-              inputProps={{ step: 0.1 }}
-            />
-            <TextField
-              label="Max Bet"
-              type="number"
-              value={editFormData.maxLose}
-              onChange={(e) => handleEditFormChange("maxLose", e.target.value)}
-              fullWidth
-            />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <TextField
+                select
+                label="Odds"
+                value={editFormData.selectedOdds[0]}
+                onChange={(e) =>
+                  handleEditFormChange("selectedOdds", [
+                    e.target.value,
+                    editFormData.selectedOdds[1],
+                  ])
+                }
+                sx={{ minWidth: "100px" }}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map(
+                  (odds) => (
+                    <MenuItem key={odds} value={odds}>
+                      {odds}
+                    </MenuItem>
+                  )
+                )}
+              </TextField>
+              <span>to</span>
+              <TextField
+                select
+                value={editFormData.selectedOdds[1]}
+                onChange={(e) =>
+                  handleEditFormChange("selectedOdds", [
+                    editFormData.selectedOdds[0],
+                    e.target.value,
+                  ])
+                }
+                sx={{ minWidth: "100px" }}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((odds) => (
+                  <MenuItem key={odds} value={odds}>
+                    {odds}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <TextField
+                label="Max Loss"
+                type="number"
+                value={editFormData.maxLose}
+                onChange={(e) => handleEditFormChange("maxLose", e.target.value)}
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="Max Win"
+                type="number"
+                value={
+                  editFormData.maxLose
+                    ? (
+                        parseFloat(editFormData.maxLose) *
+                        (parseFloat(editFormData.selectedOdds[1]) /
+                          parseFloat(editFormData.selectedOdds[0]))
+                      ).toFixed(2)
+                    : ""
+                }
+                disabled
+                sx={{ flex: 1 }}
+              />
+            </Box>
             <FormControl fullWidth>
               <InputLabel>Eligible Users</InputLabel>
               <Select
