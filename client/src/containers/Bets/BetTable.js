@@ -15,6 +15,7 @@ import {
   FormControl,
   InputLabel,
   Chip,
+  InputAdornment,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { fetchBets } from "store/betsSlice";
@@ -140,7 +141,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
             "&:disabled": {
               backgroundColor: "#614051",
               color: "white",
-            }
+            },
           }}
         >
           Accepted
@@ -204,6 +205,7 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
     {
       field: "maxLose",
       headerName: "Max Bet",
+      minWidth: 100,
       align: "center",
       headerAlign: "center",
       flex: 1,
@@ -222,12 +224,11 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
           <Box sx={{ padding: "12px" }}>
             {acceptedUsers.map((user) => {
               const acceptedAmount = (
-                parseFloat(params.row.maxLose) *
-                (parseFloat(params.row.odds))
-              ).toFixed(0);
+                parseFloat(params.row.maxLose) * parseFloat(params.row.odds)
+              ).toFixed(2);
               return (
                 <div key={user.id}>
-                  {user.firstName} ({acceptedAmount})
+                  {user.firstName} (£{acceptedAmount})
                 </div>
               );
             })}
@@ -423,6 +424,11 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
                 onChange={(e) =>
                   handleEditFormChange("maxLose", e.target.value)
                 }
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">£</InputAdornment>
+                  ),
+                }}
                 sx={{ flex: 1 }}
               />
               <TextField
@@ -437,6 +443,11 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
                       ).toFixed(2)
                     : ""
                 }
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">£</InputAdornment>
+                  ),
+                }}
                 disabled
                 sx={{ flex: 1 }}
               />
