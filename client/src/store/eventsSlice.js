@@ -2,10 +2,20 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { makeRequest } from "../helpers/makeRequest";
 
 export const eventsSelector = (state) => state.events.list;
+export const eventTypesSelector = (state) => state.events.eventTypes;
 
 const initialState = {
   list: [],
+  eventTypes: [],
 };
+
+export const fetchEventTypes = createAsyncThunk(
+  "events/fetchEventTypes",
+  async () => {
+    const data = await makeRequest.get("/event-types");
+    return data.eventTypes;
+  }
+);
 
 export const fetchEvents = createAsyncThunk("events/fetchEvents", async () => {
   const data = await makeRequest.get("/events");
@@ -38,6 +48,9 @@ export const eventsSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
+    builder.addCase(fetchEventTypes.fulfilled, (state, action) => {
+      state.eventTypes = action.payload;
+    });
     builder.addCase(fetchEvents.fulfilled, (state, action) => {
       state.list = action.payload;
     });

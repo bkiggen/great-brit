@@ -81,22 +81,36 @@ model Episode {
   @@map("episodes")
 }
 
+// EventType model - Predefined event types
+model EventType {
+  id          Int      @id @default(autoincrement())
+  description String   @unique
+  value       Float
+  createdAt   DateTime @default(now())
+
+  // Relations
+  events Event[]
+
+  @@map("event_types")
+}
+
 // Event model - Events within episodes
 model Event {
   id          Int      @id @default(autoincrement())
-  description String   @db.Text
+  eventTypeId Int
   time        String?
-  baseAmount  Float
   starId      Int?
   episodeId   Int?
   createdAt   DateTime @default(now())
 
   // Relations
-  star    Star?    @relation(fields: [starId], references: [id], onDelete: SetNull)
-  episode Episode? @relation(fields: [episodeId], references: [number], onDelete: SetNull)
+  eventType EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  star      Star?     @relation(fields: [starId], references: [id], onDelete: SetNull)
+  episode   Episode?  @relation(fields: [episodeId], references: [number], onDelete: SetNull)
 
   @@index([episodeId])
   @@index([starId])
+  @@index([eventTypeId])
   @@map("events")
 }
 

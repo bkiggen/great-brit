@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { createEvent } from "store/eventsSlice";
+import { createEvent, fetchEventTypes, eventTypesSelector } from "store/eventsSlice";
 import { fetchStars, starsSelector } from "store/starsSlice";
 import { fetchEventsByEpisode, eventsSelector } from "store/eventsSlice";
 import {
@@ -29,18 +29,19 @@ const AdminEvents = ({ episodeId }) => {
   const stars = useSelector(starsSelector);
   const events = useSelector(eventsSelector);
   const users = useSelector(usersSelector);
+  const eventTypes = useSelector(eventTypesSelector);
 
   const isAdminView = useLocation().pathname === "/admin";
 
   const [formData, setFormData] = useState({
-    description: "",
+    eventTypeId: "",
     time: "",
-    baseAmount: "",
     starId: "",
   });
 
   useEffect(() => {
     dispatch(fetchStars());
+    dispatch(fetchEventTypes());
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -67,9 +68,8 @@ const AdminEvents = ({ episodeId }) => {
     e.preventDefault();
 
     const eventData = {
-      description: formData.description,
+      eventTypeId: formData.eventTypeId,
       time: formData.time,
-      baseAmount: formData.baseAmount,
       starId: formData.starId,
       episodeId,
     };
@@ -77,17 +77,31 @@ const AdminEvents = ({ episodeId }) => {
     dispatch(createEvent(eventData));
 
     setFormData({
-      description: "",
+      eventTypeId: "",
       time: "",
-      baseAmount: "",
       starId: "",
     });
   };
 
   const columns = [
-    { field: "description", headerName: "Description", flex: 1 },
-    // { field: "time", headerName: "Time", flex: 1 },
-    { field: "baseAmount", headerName: "Base Amount", flex: 1 },
+    {
+      field: "eventType",
+      headerName: "Event Type",
+      flex: 1,
+      valueGetter: (params) => {
+        if (!params.row.eventType) return "—";
+        return params.row.eventType.description;
+      },
+    },
+    {
+      field: "value",
+      headerName: "Value",
+      flex: 1,
+      valueGetter: (params) => {
+        if (!params.row.eventType) return "—";
+        return params.row.eventType.value;
+      },
+    },
     {
       field: "star",
       headerName: "Star",
@@ -116,39 +130,30 @@ const AdminEvents = ({ episodeId }) => {
         {isAdminView && (
           <form onSubmit={handleSubmit}>
             <div className="formRow">
-              {/* <TextField
-                label="Time (MM:SS)"
-                name="time"
-                value={formData.time}
-                onChange={handleChange}
-                sx={{ width: "30%" }}
-                inputProps={{
-                  pattern: "^([0-5]?[0-9]):([0-5][0-9])$",
-                  title: "Please enter time in MM:SS format",
-                }}
-                fullWidth
-              /> */}
-              <TextField
-                label="Base Amount"
-                name="baseAmount"
-                value={formData.baseAmount}
+              <Select
+                name="eventTypeId"
+                value={formData.eventTypeId}
                 onChange={handleChange}
                 required
-                type="number"
+                displayEmpty
                 sx={{ width: "48%" }}
-                inputProps={{
-                  step: 1,
-                }}
-              />
+              >
+                <MenuItem value="">Select event type</MenuItem>
+                {eventTypes.map((eventType) => (
+                  <MenuItem key={eventType.id} value={eventType.id}>
+                    {eventType.description} ({eventType.value > 0 ? '+' : ''}{eventType.value})
+                  </MenuItem>
+                ))}
+              </Select>
               <Select
-                // label="Star"
                 name="starId"
                 value={formData.starId}
                 onChange={handleChange}
                 required
+                displayEmpty
                 sx={{ width: "50%" }}
               >
-                <MenuItem value="">Select a star</MenuItem>
+                <MenuItem value="">Select a baker</MenuItem>
                 {stars.map((star) => (
                   <MenuItem key={star.id} value={star.id}>
                     {`${star.firstName} ${star.lastName}`}
@@ -156,19 +161,8 @@ const AdminEvents = ({ episodeId }) => {
                 ))}
               </Select>
             </div>
-            <div>
-              <TextField
-                label="Description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                required
-                fullWidth
-                sx={{ marginBottom: "12px" }}
-              />
-            </div>
-            <Button type="submit" variant="outlined">
-              Add
+            <Button type="submit" variant="outlined" sx={{ marginTop: "12px" }}>
+              Add Event
             </Button>
           </form>
         )}
