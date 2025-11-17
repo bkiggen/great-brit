@@ -5,7 +5,7 @@ import StarsList from "./StarsTable";
 
 const Stars = () => {
   return (
-    <Container sx={{ paddingBottom: "80px", paddingTop: "160px" }}>
+    <Container sx={{ paddingBottom: "80px", paddingTop: "60px" }}>
       <NewBet />
       <StarsList />
     </Container>

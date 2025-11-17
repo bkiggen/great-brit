@@ -17,6 +17,10 @@ import {
   List,
   ListItem,
   ListItemText,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 
 import BetTable from "containers/Bets/BetTable";
@@ -96,78 +100,168 @@ const Episodes = ({ admin }) => {
   return (
     <div className={`episodes ${styles}`}>
       {admin && <CreateEpisode episodes={episodes} />}
-      <div className="folder">
-        <div className="tabs">
-          {episodes.map((episode) => {
-            const tabClass =
-              episode.number === active?.number ? "tab active" : "tab inactive";
 
-            return (
-              <div
-                key={episode.number}
-                className={tabClass}
-                onClick={() => handleTabClick(episode)}
-              >
-                {episode.number}
-              </div>
-            );
-          })}
-        </div>
-        <div className="main">
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              alignItems: { xs: "flex-start", md: "center" },
-              justifyContent: "space-between",
-              gap: 2,
+      {/* Mobile Episode Select - Hidden on desktop */}
+      <Box sx={{ display: { xs: "block", md: "none" }, mb: 2, mt: 6 }}>
+        <FormControl fullWidth>
+          <InputLabel>Episode</InputLabel>
+          <Select
+            value={active?.number || ""}
+            onChange={(e) => {
+              const episode = episodes.find(
+                (ep) => ep.number === e.target.value
+              );
+              handleTabClick(episode);
             }}
+            label="Episode"
+            sx={{ backgroundColor: "white" }}
           >
-            <h1>Episode {active?.number}</h1>
-            {admin && (
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  width: { xs: "100%", md: "auto" },
-                  flexDirection: { xs: "column", sm: "row" },
-                }}
-              >
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={handleClearDeltas}
-                  fullWidth
-                  sx={{ width: { sm: "auto" } }}
+            {episodes.map((episode) => (
+              <MenuItem key={episode.number} value={episode.number}>
+                Episode {episode.number}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      <Box
+        sx={{
+          display: { xs: "none", md: "block" },
+        }}
+      >
+        <div className="folder">
+          <div className="tabs">
+            {episodes.map((episode) => {
+              const tabClass =
+                episode.number === active?.number
+                  ? "tab active"
+                  : "tab inactive";
+
+              return (
+                <div
+                  key={episode.number}
+                  className={tabClass}
+                  onClick={() => handleTabClick(episode)}
                 >
-                  Clear Deltas
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => handleCalculateDeltas()}
-                  fullWidth
-                  sx={{ width: { sm: "auto" } }}
+                  {episode.number}
+                </div>
+              );
+            })}
+          </div>
+          <div className="main">
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { xs: "flex-start", md: "center" },
+                justifyContent: "space-between",
+                gap: 2,
+              }}
+            >
+              <h1>Episode {active?.number}</h1>
+              {admin && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 2,
+                    width: { xs: "100%", md: "auto" },
+                    flexDirection: { xs: "column", sm: "row" },
+                  }}
                 >
-                  Calculate Deltas
-                </Button>
-              </Box>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleClearDeltas}
+                    fullWidth
+                    sx={{ width: { sm: "auto" } }}
+                  >
+                    Clear Deltas
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleCalculateDeltas()}
+                    fullWidth
+                    sx={{ width: { sm: "auto" } }}
+                  >
+                    Calculate Deltas
+                  </Button>
+                </Box>
+              )}
+            </Box>
+            {active && <Events episodeId={active?.number} />}
+            {active && admin && <ManageStars episodeId={active?.number} />}
+            {active && (
+              <>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    marginTop: "48px",
+                    fontSize: "24px",
+                    fontWeight: "500",
+                  }}
+                >
+                  Bets:
+                </Typography>
+                <BetTable episodeId={active?.number} readOnly admin={admin} />
+              </>
             )}
-          </Box>
-          {active && <Events episodeId={active?.number} />}
-          {active && admin && <ManageStars episodeId={active?.number} />}
-          {active && (
-            <>
-              <Typography
-                variant="h5"
-                sx={{ marginTop: "48px", fontSize: "24px", fontWeight: "500" }}
-              >
-                Bets:
-              </Typography>
-              <BetTable episodeId={active?.number} readOnly admin={admin} />
-            </>
-          )}
+          </div>
         </div>
-      </div>
+      </Box>
+
+      {/* Mobile Content - Hidden on desktop */}
+      <Box sx={{ display: { xs: "block", md: "none" } }}>
+        {active && (
+          <>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              {admin && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 2,
+                    width: "100%",
+                    flexDirection: "column",
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleClearDeltas}
+                    fullWidth
+                  >
+                    Clear Deltas
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleCalculateDeltas()}
+                    fullWidth
+                  >
+                    Calculate Deltas
+                  </Button>
+                </Box>
+              )}
+            </Box>
+            <Events episodeId={active?.number} />
+            {admin && <ManageStars episodeId={active?.number} />}
+            <Typography
+              variant="h5"
+              sx={{ marginTop: "48px", fontSize: "24px", fontWeight: "500" }}
+            >
+              Bets:
+            </Typography>
+            <BetTable episodeId={active?.number} readOnly admin={admin} />
+          </>
+        )}
+      </Box>
 
       <Dialog
         open={confirmDialogOpen}

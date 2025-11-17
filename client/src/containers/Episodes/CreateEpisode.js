@@ -26,16 +26,18 @@ const CreateEpisode = ({ episodes }) => {
     <Box
       sx={{
         display: "flex",
-        alignItems: "center",
+        flexDirection: { xs: "column", md: "row" },
+        alignItems: { xs: "stretch", md: "center" },
         justifyContent: "space-between",
         backgroundColor: "white",
         borderRadius: "4px",
         padding: "24px",
         boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.05)",
+        gap: 2,
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        <FormControl variant="outlined" sx={{ marginRight: "12px", minWidth: 200 }}>
+      <Box sx={{ order: { xs: 2, md: 1 }, display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "stretch", sm: "center" }, gap: 1.5 }}>
+        <FormControl variant="outlined" sx={{ minWidth: { xs: "100%", sm: 200 } }}>
           <InputLabel id="episode-number-label">Episode Number</InputLabel>
           <Select
             labelId="episode-number-label"
@@ -63,7 +65,9 @@ const CreateEpisode = ({ episodes }) => {
           Create Episode
         </Button>
       </Box>
-      <SetCurrentEpisode episodes={episodes} />
+      <Box sx={{ order: { xs: 1, md: 2 } }}>
+        <SetCurrentEpisode episodes={episodes} />
+      </Box>
     </Box>
   );
 };

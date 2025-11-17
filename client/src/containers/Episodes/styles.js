@@ -3,6 +3,7 @@ import { css } from "@emotion/css";
 export const styles = css`
   width: 100%;
   padding-top: 180px;
+  padding-bottom: 80px;
   width: 90%;
   margin: 0 auto;
 
@@ -18,8 +19,7 @@ export const styles = css`
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      background: var(--baby-blue);
-
+      background: rgb(250, 247, 242);
       .tab {
         width: 100%;
 
