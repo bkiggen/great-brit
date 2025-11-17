@@ -1,13 +1,20 @@
 import React, { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { Box } from "@mui/material";
+import { Box, Card, CardContent, Typography } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import LockIcon from "@mui/icons-material/Lock";
 
 const ItemType = "RANKING_ITEM";
 
-const DraggableRankingItem = ({ item, index, moveItem, onDrop, disabled = false }) => {
+const DraggableRankingItem = ({
+  item,
+  index,
+  moveItem,
+  onDrop,
+  disabled = false,
+}) => {
   const ref = useRef(null);
+  const rank = index + 1;
 
   const [{ isDragging }, drag] = useDrag({
     type: ItemType,
@@ -28,7 +35,6 @@ const DraggableRankingItem = ({ item, index, moveItem, onDrop, disabled = false 
       }
     },
     drop: () => {
-      // Call onDrop when item is dropped
       if (onDrop && !disabled) {
         onDrop();
       }
@@ -43,43 +49,90 @@ const DraggableRankingItem = ({ item, index, moveItem, onDrop, disabled = false 
   }
 
   return (
-    <Box
+    <Card
       ref={ref}
       sx={{
-        height: "20px",
-        width: "300px",
-        margin: "0 auto",
+        marginBottom: 2,
         background: disabled ? "#f5f5f5" : isDragging ? "#f0f0f0" : "white",
-        marginBottom: "12px",
-        boxShadow: isOver
-          ? "0px 0px 15px 0px rgba(66, 135, 245, 0.5)"
-          : "0px 0px 10px 0px rgba(0,0,0,0.2)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "24px",
-        borderRadius: "4px",
         cursor: disabled ? "not-allowed" : "move",
-        opacity: disabled ? 0.6 : isDragging ? 0.5 : 1,
-        transition: "box-shadow 0.2s ease",
+        opacity: disabled ? 0.7 : isDragging ? 0.5 : 1,
+        transform: isDragging ? "rotate(-2deg)" : "none",
+        transition: "all 0.2s ease",
+        border: isOver ? "2px solid #2c5f4f" : "2px solid transparent",
+        boxShadow: isOver
+          ? "0px 8px 24px rgba(44, 95, 79, 0.3)"
+          : "0px 2px 8px rgba(0, 0, 0, 0.08)",
         "&:hover": {
+          transform: disabled ? "none" : "translateY(-2px)",
           boxShadow: disabled
-            ? "0px 0px 10px 0px rgba(0,0,0,0.2)"
-            : "0px 0px 15px 0px rgba(0,0,0,0.3)",
+            ? "0px 2px 8px rgba(0, 0, 0, 0.08)"
+            : "0px 8px 24px rgba(0, 0, 0, 0.2)",
         },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {disabled ? (
-          <LockIcon sx={{ color: "#999" }} />
-        ) : (
-          <DragIndicatorIcon sx={{ color: "#999" }} />
-        )}
-        <Box sx={{ fontSize: "24px", fontWeight: 700 }}>
-          {index + 1}: {item.star?.firstName} {item.star?.lastName}
+      <CardContent sx={{ p: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          {/* Drag Handle or Lock Icon */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 32,
+            }}
+          >
+            {disabled ? (
+              <LockIcon sx={{ color: "#6b6562", fontSize: 24 }} />
+            ) : (
+              <DragIndicatorIcon
+                sx={{
+                  color: "#6b6562",
+                  fontSize: 28,
+                }}
+              />
+            )}
+          </Box>
+
+          {/* Rank Number */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: { xs: 40, sm: 50 },
+              height: { xs: 40, sm: 50 },
+              borderRadius: "50%",
+              background: "rgba(44, 95, 79, 0.1)",
+              fontWeight: 700,
+              fontSize: { xs: "20px", sm: "24px" },
+              color: "#2c5f4f",
+            }}
+          >
+            {rank}
+          </Box>
+
+          {/* Baker Name */}
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                fontSize: { xs: "18px", sm: "22px" },
+                color: "#2d2926",
+              }}
+            >
+              {item.star?.firstName} {item.star?.lastName}
+            </Typography>
+          </Box>
         </Box>
-      </Box>
-    </Box>
+      </CardContent>
+    </Card>
   );
 };
 
