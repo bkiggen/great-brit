@@ -33,11 +33,27 @@ import {
 import { usersSelector } from "store/usersSlice";
 import { getLowestFraction } from "helpers/getLowestFraction";
 
-const Bets = ({ episodeId, readOnly = false, admin }) => {
+const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
   const dispatch = useDispatch();
-  const bets = useSelector(betsSelector);
+  const allBets = useSelector(betsSelector);
   const { user: sessionUser } = useSelector(sessionSelector);
   const users = useSelector(usersSelector);
+
+  // Filter bets based on filterType
+  const bets = React.useMemo(() => {
+    if (filterType === "myBets") {
+      return allBets.filter((bet) => bet.better?.id === sessionUser?.id);
+    }
+    if (filterType === "availableToAccept") {
+      return allBets.filter(
+        (bet) =>
+          bet.better?.id !== sessionUser?.id &&
+          bet.eligibleUsers?.some((user) => user.id === sessionUser?.id) &&
+          !bet.acceptedUsers?.some((user) => user.id === sessionUser?.id)
+      );
+    }
+    return allBets;
+  }, [allBets, filterType, sessionUser]);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingBet, setEditingBet] = useState(null);
@@ -606,7 +622,11 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
           <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary" align="center">
-                No bets available
+                {filterType === "myBets"
+                  ? "You haven't created any bets yet"
+                  : filterType === "availableToAccept"
+                  ? "No bets available for you to accept"
+                  : "No bets available"}
               </Typography>
             </CardContent>
           </Card>

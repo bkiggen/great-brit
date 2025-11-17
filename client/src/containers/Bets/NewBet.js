@@ -55,17 +55,22 @@ const Bets = () => {
   return (
     <Box
       sx={{
-        width: "90%",
-        maxWidth: "900px",
-        margin: "0 auto",
-        marginTop: "120px",
-        padding: "30px",
+        padding: { xs: "20px", md: "30px" },
         background: "white",
-        boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.15)",
-        borderRadius: "4px",
+        boxShadow: "0px 4px 12px rgba(45, 41, 38, 0.08)",
+        borderRadius: "12px",
       }}
     >
-      <Box sx={{ fontSize: "20px", fontWeight: "bold" }}>Propose a New Bet</Box>
+      <Typography
+        variant="h5"
+        sx={{
+          fontSize: { xs: "18px", md: "22px" },
+          fontWeight: 600,
+          mb: 3,
+        }}
+      >
+        Propose a New Bet
+      </Typography>
       <TextField
         label="Description"
         multiline
