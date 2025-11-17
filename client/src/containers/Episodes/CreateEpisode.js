@@ -30,9 +30,9 @@ const CreateEpisode = ({ episodes }) => {
         alignItems: { xs: "stretch", md: "center" },
         justifyContent: "space-between",
         backgroundColor: "white",
-        borderRadius: "4px",
-        padding: "24px",
-        boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.05)",
+        borderRadius: "12px",
+        padding: { xs: "20px", md: "24px" },
+        boxShadow: "0px 4px 12px rgba(45, 41, 38, 0.08)",
         gap: 2,
       }}
     >
