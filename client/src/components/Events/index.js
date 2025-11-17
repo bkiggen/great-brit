@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import {
   Button,
-  TextField,
   Select,
   MenuItem,
   Accordion,
@@ -11,10 +10,17 @@ import {
   AccordionDetails,
   Typography,
   Box,
+  Card,
+  CardContent,
+  Divider,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { createEvent, fetchEventTypes, eventTypesSelector } from "store/eventsSlice";
+import {
+  createEvent,
+  fetchEventTypes,
+  eventTypesSelector,
+} from "store/eventsSlice";
 import { fetchStars, starsSelector } from "store/starsSlice";
 import { fetchEventsByEpisode, eventsSelector } from "store/eventsSlice";
 import {
@@ -113,6 +119,55 @@ const AdminEvents = ({ episodeId }) => {
     },
   ];
 
+  // Render a single event as a mobile card
+  const renderEventCard = (event) => {
+    return (
+      <Card key={event.id} sx={{ mb: 2 }}>
+        <CardContent>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Event Type:
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {event.eventType?.description || "—"}
+            </Typography>
+          </Box>
+
+          <Divider sx={{ my: 1.5 }} />
+
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Value:
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 500,
+                color: event.eventType?.value > 0 ? "success.main" : event.eventType?.value < 0 ? "error.main" : "text.primary",
+              }}
+            >
+              {event.eventType?.value > 0 ? "+" : ""}
+              {event.eventType?.value || "—"}
+            </Typography>
+          </Box>
+
+          <Divider sx={{ my: 1.5 }} />
+
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography variant="body2" color="text.secondary">
+              Baker:
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {event.star
+                ? `${event.star.firstName} ${event.star.lastName}`
+                : "—"}
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className={`admin-events ${styles}`}>
       <Typography
@@ -126,22 +181,30 @@ const AdminEvents = ({ episodeId }) => {
       >
         Events:
       </Typography>
-      <div className="addNew">
+      <Box sx={{ mb: 3 }}>
         {isAdminView && (
           <form onSubmit={handleSubmit}>
-            <div className="formRow">
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 2,
+                mb: 2,
+              }}
+            >
               <Select
                 name="eventTypeId"
                 value={formData.eventTypeId}
                 onChange={handleChange}
                 required
                 displayEmpty
-                sx={{ width: "48%" }}
+                sx={{ flex: 1 }}
               >
                 <MenuItem value="">Select event type</MenuItem>
                 {eventTypes.map((eventType) => (
                   <MenuItem key={eventType.id} value={eventType.id}>
-                    {eventType.description} ({eventType.value > 0 ? '+' : ''}{eventType.value})
+                    {eventType.description} ({eventType.value > 0 ? "+" : ""}
+                    {eventType.value})
                   </MenuItem>
                 ))}
               </Select>
@@ -151,7 +214,7 @@ const AdminEvents = ({ episodeId }) => {
                 onChange={handleChange}
                 required
                 displayEmpty
-                sx={{ width: "50%" }}
+                sx={{ flex: 1 }}
               >
                 <MenuItem value="">Select a baker</MenuItem>
                 {stars.map((star) => (
@@ -160,27 +223,45 @@ const AdminEvents = ({ episodeId }) => {
                   </MenuItem>
                 ))}
               </Select>
-            </div>
-            <Button type="submit" variant="outlined" sx={{ marginTop: "12px" }}>
+            </Box>
+            <Button type="submit" variant="outlined" fullWidth sx={{ maxWidth: { md: "200px" } }}>
               Add Event
             </Button>
           </form>
         )}
-      </div>
+      </Box>
 
-      <DataGrid
-        rows={events}
-        columns={columns}
-        autoHeight
-        disableColumnMenu
-        disableColumnFilter
-        sortingOrder={["desc", "asc", null]}
-        hideFooterPagination
-        hideFooter
-        checkboxSelection={false}
-        className="bg-white border-0 rounded-0"
-        getRowId={(event) => event.id}
-      />
+      {/* Desktop Table - Hidden on mobile */}
+      <Box sx={{ display: { xs: "none", md: "block" } }}>
+        <DataGrid
+          rows={events}
+          columns={columns}
+          autoHeight
+          disableColumnMenu
+          disableColumnFilter
+          sortingOrder={["desc", "asc", null]}
+          hideFooterPagination
+          hideFooter
+          checkboxSelection={false}
+          className="bg-white border-0 rounded-0"
+          getRowId={(event) => event.id}
+        />
+      </Box>
+
+      {/* Mobile Cards - Hidden on desktop */}
+      <Box sx={{ display: { xs: "block", md: "none" } }}>
+        {events.length > 0 ? (
+          events.map((event) => renderEventCard(event))
+        ) : (
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" align="center">
+                No events available
+              </Typography>
+            </CardContent>
+          </Card>
+        )}
+      </Box>
 
       <Box sx={{ marginTop: "62px", fontSize: "24px", fontWeight: "600" }}>
         Rankings for this Episode:
@@ -226,7 +307,8 @@ const AdminEvents = ({ episodeId }) => {
               {user.rankings?.map((ranking) => {
                 return (
                   <div key={ranking.id}>
-                    {ranking.rank} - {ranking.star?.firstName} {ranking.star?.lastName}
+                    {ranking.rank} - {ranking.star?.firstName}{" "}
+                    {ranking.star?.lastName}
                   </div>
                 );
               })}

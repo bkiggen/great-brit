@@ -81,11 +81,11 @@ const Bets = () => {
           display: "flex",
           alignItems: "center",
           marginTop: "24px",
+          gap: 2,
+          flexWrap: "wrap",
         }}
       >
-        <Box
-          sx={{ display: "flex", alignItems: "center", marginRight: "24px" }}
-        >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
           <TextField
             select
             label="Odds"
@@ -180,7 +180,7 @@ const Bets = () => {
               })}
             </div>
           )}
-          sx={{ minWidth: "350px", width: "65%" }}
+          sx={{ width: { xs: "100%", md: "65%" } }}
         >
           {users
             .filter((user) => user.id !== sessionUser?.id)

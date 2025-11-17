@@ -16,6 +16,10 @@ import {
   InputLabel,
   Chip,
   InputAdornment,
+  Card,
+  CardContent,
+  Typography,
+  Divider,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { fetchBets } from "store/betsSlice";
@@ -362,9 +366,219 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
     dispatch(fetchBets({ episodeId }));
   }, [episodeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Render a single bet as a mobile card
+  const renderBetCard = (bet) => {
+    const yourBet = sessionUser?.id === bet.better?.id;
+    const eligibleBet = bet.eligibleUsers?.find(
+      (user) => user.id === sessionUser?.id
+    );
+    const alreadyAccepted = bet.acceptedUsers?.find(
+      (user) => user.id === sessionUser?.id
+    );
+    const hasAcceptedUsers = bet.acceptedUsers && bet.acceptedUsers.length > 0;
+
+    return (
+      <Card key={bet.id} sx={{ mb: 2 }}>
+        <CardContent>
+          {/* Description */}
+          <Typography variant="body1" sx={{ mb: 2, fontWeight: 500 }}>
+            {bet.description}
+          </Typography>
+
+          <Divider sx={{ mb: 2 }} />
+
+          {/* Better and Odds */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Better:
+            </Typography>
+            <Typography variant="body2">{bet.better?.firstName}</Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Odds:
+            </Typography>
+            <Typography variant="body2">
+              {getLowestFraction(bet.odds)}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Max Bet:
+            </Typography>
+            <Typography variant="body2">£{bet.maxLose}</Typography>
+          </Box>
+
+          {/* Accepted Users */}
+          {bet.acceptedUsers && bet.acceptedUsers.length > 0 && (
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 0.5 }}
+              >
+                Accepted:
+              </Typography>
+              {bet.acceptedUsers.map((user) => {
+                const acceptedAmount = (
+                  parseFloat(bet.maxLose) * parseFloat(bet.odds)
+                ).toFixed(2);
+                return (
+                  <Typography key={user.id} variant="body2" sx={{ pl: 1 }}>
+                    {user.firstName} (£{acceptedAmount})
+                  </Typography>
+                );
+              })}
+            </Box>
+          )}
+
+          {/* Eligible Users */}
+          {bet.eligibleUsers &&
+            bet.eligibleUsers.filter(
+              (user) => !bet.acceptedUsers?.find((au) => au.id === user.id)
+            ).length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 0.5 }}
+                >
+                  Eligible:
+                </Typography>
+                {bet.eligibleUsers
+                  .filter(
+                    (user) =>
+                      !bet.acceptedUsers?.find((au) => au.id === user.id)
+                  )
+                  .map((user) => (
+                    <Typography key={user.id} variant="body2" sx={{ pl: 1 }}>
+                      {user.firstName}
+                    </Typography>
+                  ))}
+              </Box>
+            )}
+
+          <Divider sx={{ mb: 2 }} />
+
+          {/* Action Buttons */}
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            {/* Accept/Edit Button */}
+            {!readOnly && (
+              <>
+                {yourBet ? (
+                  hasAcceptedUsers ? (
+                    <Tooltip title="Cannot edit - bet has been accepted by other users">
+                      <span>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          disabled
+                          fullWidth
+                        >
+                          Edit Bet
+                        </Button>
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => handleEditClick(bet)}
+                      fullWidth
+                    >
+                      Edit Bet
+                    </Button>
+                  )
+                ) : alreadyAccepted ? (
+                  <Button
+                    variant="contained"
+                    disabled
+                    fullWidth
+                    sx={{
+                      backgroundColor: "#614051",
+                      color: "white",
+                      "&:disabled": {
+                        backgroundColor: "#614051",
+                        color: "white",
+                      },
+                    }}
+                  >
+                    Accepted
+                  </Button>
+                ) : eligibleBet ? (
+                  <Button
+                    variant="contained"
+                    onClick={() => dispatch(acceptBet(bet.id))}
+                    fullWidth
+                  >
+                    Accept Bet
+                  </Button>
+                ) : (
+                  <Button variant="contained" disabled fullWidth>
+                    Not Eligible
+                  </Button>
+                )}
+              </>
+            )}
+
+            {/* Won/Lost Button */}
+            {bet.won === null ? (
+              admin && (
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    dispatch(updateBet({ betId: bet.id, won: true }))
+                  }
+                  fullWidth
+                >
+                  Mark Result
+                </Button>
+              )
+            ) : (
+              <Button
+                variant="contained"
+                color={bet.won ? "success" : "error"}
+                onClick={() => {
+                  if (admin) {
+                    dispatch(updateBet({ betId: bet.id, won: !bet.won }));
+                  }
+                }}
+                fullWidth
+                disabled={!admin}
+              >
+                {bet.won ? "Won" : "Lost"}
+              </Button>
+            )}
+
+            {/* Delete Button */}
+            {admin && (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => dispatch(deleteBet(bet.id))}
+                fullWidth
+              >
+                Delete
+              </Button>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <>
-      <Box style={{ marginTop: "20px", background: "white" }}>
+      {/* Desktop Table - Hidden on mobile */}
+      <Box
+        sx={{
+          marginTop: "20px",
+          background: "white",
+          display: { xs: "none", md: "block" },
+        }}
+      >
         <DataGrid
           rows={bets}
           columns={columns}
@@ -377,6 +591,26 @@ const Bets = ({ episodeId, readOnly = false, admin }) => {
           rowHeight={120}
           autoHeight
         />
+      </Box>
+
+      {/* Mobile Cards - Hidden on desktop */}
+      <Box
+        sx={{
+          marginTop: "20px",
+          display: { xs: "block", md: "none" },
+        }}
+      >
+        {bets.length > 0 ? (
+          bets.map((bet) => renderBetCard(bet))
+        ) : (
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" align="center">
+                No bets available
+              </Typography>
+            </CardContent>
+          </Card>
+        )}
       </Box>
 
       <Dialog

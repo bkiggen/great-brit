@@ -72,32 +72,42 @@ const Rankings = () => {
 
   return items ? (
     <DndProvider backend={HTML5Backend}>
-      <Box sx={{ paddingTop: "80px", paddingBottom: "80px" }}>
+      <Box
+        sx={{
+          paddingTop: { xs: "80px", md: "100px" },
+          paddingBottom: "80px",
+          paddingX: { xs: 2, md: 0 },
+        }}
+      >
         {currentEpisode && (
-          <Select
-            value={episodeId}
-            onChange={(e) => {
-              setEpisodeId(e.target.value);
-            }}
-            sx={{ marginLeft: "12px", minWidth: "100px" }}
-          >
-            {episodes.map((episode) => (
-              <MenuItem key={episode.number} value={episode.number}>
-                {episode.number}
-              </MenuItem>
-            ))}
-          </Select>
+          <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
+            <Select
+              value={episodeId}
+              onChange={(e) => {
+                setEpisodeId(e.target.value);
+              }}
+              sx={{ minWidth: "120px" }}
+            >
+              {episodes.map((episode) => (
+                <MenuItem key={episode.number} value={episode.number}>
+                  Episode {episode.number}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
         )}
-        {items.map((item, idx) => (
-          <DraggableRankingItem
-            key={item.id}
-            item={item}
-            index={idx}
-            moveItem={moveItem}
-            onDrop={handleDrop}
-            disabled={isLocked}
-          />
-        ))}
+        <Box sx={{ maxWidth: "600px", margin: "0 auto" }}>
+          {items.map((item, idx) => (
+            <DraggableRankingItem
+              key={item.id}
+              item={item}
+              index={idx}
+              moveItem={moveItem}
+              onDrop={handleDrop}
+              disabled={isLocked}
+            />
+          ))}
+        </Box>
       </Box>
     </DndProvider>
   ) : (

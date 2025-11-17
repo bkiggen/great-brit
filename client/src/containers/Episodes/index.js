@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEpisodes, calculateDeltas, clearDeltas } from "store/episodesSlice";
+import {
+  fetchEpisodes,
+  calculateDeltas,
+  clearDeltas,
+} from "store/episodesSlice";
 import { fetchStars } from "store/starsSlice";
 import {
   Button,
@@ -113,23 +117,36 @@ const Episodes = ({ admin }) => {
           <Box
             sx={{
               display: "flex",
-              alignItems: "center",
+              flexDirection: { xs: "column", md: "row" },
+              alignItems: { xs: "flex-start", md: "center" },
               justifyContent: "space-between",
+              gap: 2,
             }}
           >
             <h1>Episode {active?.number}</h1>
             {admin && (
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  width: { xs: "100%", md: "auto" },
+                  flexDirection: { xs: "column", sm: "row" },
+                }}
+              >
                 <Button
                   variant="outlined"
                   color="error"
                   onClick={handleClearDeltas}
+                  fullWidth
+                  sx={{ width: { sm: "auto" } }}
                 >
                   Clear Deltas
                 </Button>
                 <Button
                   variant="contained"
                   onClick={() => handleCalculateDeltas()}
+                  fullWidth
+                  sx={{ width: { sm: "auto" } }}
                 >
                   Calculate Deltas
                 </Button>
@@ -200,8 +217,8 @@ const Episodes = ({ admin }) => {
             {active?.number}?
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            This action will remove all calculated delta values for this episode.
-            You can recalculate them later.
+            This action will remove all calculated delta values for this
+            episode. You can recalculate them later.
           </Typography>
         </DialogContent>
         <DialogActions>
