@@ -11,10 +11,11 @@ const betRoutes = (router) => {
       if (episodeParam && episodeParam !== "undefined") {
         episodeNumber = parseInt(episodeParam);
       } else {
-        const latestEpisode = await prisma.episode.findFirst({
-          orderBy: { number: "desc" },
+        // Fetch the current episode instead of the latest
+        const currentEpisode = await prisma.episode.findFirst({
+          where: { current: true },
         });
-        episodeNumber = latestEpisode?.number;
+        episodeNumber = currentEpisode?.number;
       }
 
       const bets = await prisma.bet.findMany({
@@ -38,8 +39,9 @@ const betRoutes = (router) => {
     const { description, odds, maxLose, eligibleUsers } = req.body;
 
     try {
-      const latestEpisode = await prisma.episode.findFirst({
-        orderBy: { number: "desc" },
+      // Create bet for the current episode
+      const currentEpisode = await prisma.episode.findFirst({
+        where: { current: true },
       });
 
       const newBet = await prisma.bet.create({
@@ -48,7 +50,7 @@ const betRoutes = (router) => {
           odds,
           maxLose,
           betterId: req.sessionUser.id,
-          episode: latestEpisode.number,
+          episode: currentEpisode.number,
           eligibleUsers: {
             connect: eligibleUsers.filter(Boolean).map((userId) => ({ id: userId })),
           },
