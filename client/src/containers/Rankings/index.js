@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   fetchRankings,
@@ -17,16 +17,9 @@ import {
   CardContent,
   Chip,
   FormControl,
-  InputLabel,
-  Paper,
   Alert,
 } from "@mui/material";
-import {
-  EmojiEvents,
-  Lock,
-  DragIndicator,
-  Info,
-} from "@mui/icons-material";
+import { EmojiEvents, Lock, DragIndicator } from "@mui/icons-material";
 import {
   currentEpisodeSelector,
   fetchCurrentEpisode,
@@ -42,6 +35,12 @@ const Rankings = () => {
 
   const [items, setItems] = useState([]);
   const [episodeId, setEpisodeId] = useState(null);
+  const itemsRef = useRef(items);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => {
     dispatch(fetchEpisodes());
@@ -81,8 +80,8 @@ const Rankings = () => {
   };
 
   const handleDrop = () => {
-    // Save rankings when item is dropped
-    dispatch(postRankings({ rankings: items, episodeId }));
+    // Save rankings when item is dropped - use ref to get latest state
+    dispatch(postRankings({ rankings: itemsRef.current, episodeId }));
   };
 
   // Check if the selected episode is before the current episode
@@ -101,7 +100,14 @@ const Rankings = () => {
       >
         {/* Header Section */}
         <Box sx={{ mb: 4, textAlign: "center" }}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mb: 2,
+            }}
+          >
             <EmojiEvents sx={{ fontSize: 48, color: "#e8a23d", mr: 2 }} />
             <Typography
               variant="h3"
@@ -122,7 +128,12 @@ const Rankings = () => {
 
         {/* Episode Selector Card */}
         {currentEpisode && (
-          <Card sx={{ mb: 4, background: "linear-gradient(135deg, #2c5f4f 0%, #1a4435 100%)" }}>
+          <Card
+            sx={{
+              mb: 4,
+              background: "linear-gradient(135deg, #2c5f4f 0%, #1a4435 100%)",
+            }}
+          >
             <CardContent>
               <Box
                 sx={{
@@ -163,10 +174,16 @@ const Rankings = () => {
                   >
                     {episodes.map((episode) => (
                       <MenuItem key={episode.number} value={episode.number}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           Episode {episode.number}
                           {episode.current && (
-                            <Chip label="Current" size="small" color="primary" />
+                            <Chip
+                              label="Current"
+                              size="small"
+                              color="primary"
+                            />
                           )}
                         </Box>
                       </MenuItem>
@@ -180,12 +197,10 @@ const Rankings = () => {
 
         {/* Instructions Alert */}
         {!isLocked && items.length > 0 && (
-          <Alert
-            icon={<DragIndicator />}
-            severity="info"
-            sx={{ mb: 3 }}
-          >
-            Drag the <DragIndicator sx={{ fontSize: 16, verticalAlign: "middle" }} /> icon to reorder. Your rankings save automatically!
+          <Alert icon={<DragIndicator />} severity="info" sx={{ mb: 3 }}>
+            Drag the{" "}
+            <DragIndicator sx={{ fontSize: 16, verticalAlign: "middle" }} />{" "}
+            icon to reorder. Your rankings save automatically!
           </Alert>
         )}
 
@@ -205,7 +220,11 @@ const Rankings = () => {
           ) : (
             <Card>
               <CardContent>
-                <Typography variant="body1" color="text.secondary" align="center">
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  align="center"
+                >
                   No rankings available for this episode yet.
                 </Typography>
               </CardContent>
