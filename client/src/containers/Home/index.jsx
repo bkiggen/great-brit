@@ -41,8 +41,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Area,
-  AreaChart,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 
@@ -71,7 +69,11 @@ const Home = () => {
 
   // Initialize visible users - show only session user by default
   useEffect(() => {
-    if (allBalanceHistory.length > 0 && sessionUser && Object.keys(visibleUsers).length === 0) {
+    if (
+      allBalanceHistory.length > 0 &&
+      sessionUser &&
+      Object.keys(visibleUsers).length === 0
+    ) {
       const initialVisible = {};
       allBalanceHistory.forEach((user) => {
         initialVisible[user.id] = user.id === sessionUser.id;
@@ -133,7 +135,9 @@ const Home = () => {
 
       allBalanceHistory.forEach((user) => {
         // Find delta for this user and episode
-        const delta = user.userDeltas.find((d) => d.episode.number === episodeNumber);
+        const delta = user.userDeltas.find(
+          (d) => d.episode.number === episodeNumber
+        );
 
         // Get previous balance
         const previousBalance = data[data.length - 1][user.id];
