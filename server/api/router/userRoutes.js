@@ -80,6 +80,28 @@ const userRoutes = (router) => {
     res.json({ userBalanceHistory });
   });
 
+  // GET ALL USERS BALANCE HISTORY
+  router.get("/users/allBalanceHistory", authenticateUser, async (req, res) => {
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          userDeltas: {
+            include: { episode: true },
+            orderBy: { episodeId: "asc" },
+          },
+        },
+      });
+
+      res.json({ allBalanceHistory: users });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // CREATE USER
   router.post("/users", async (req, res) => {
     const { firstName, lastName, email, password, secret } = req.body;

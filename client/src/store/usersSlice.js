@@ -5,11 +5,13 @@ export const usersSelector = (state) => state.users.list;
 export const userBalanceHistorySelector = (state) =>
   state.users.userBalanceHistory;
 export const leaderboardSelector = (state) => state.users.leaderboard;
+export const allBalanceHistorySelector = (state) => state.users.allBalanceHistory;
 
 const initialState = {
   list: [],
   userBalanceHistory: [],
   leaderboard: [],
+  allBalanceHistory: [],
 };
 
 export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
@@ -34,6 +36,14 @@ export const fetchLeaderboard = createAsyncThunk(
   async () => {
     const data = await makeRequest.get("/users/leaderboard");
     return data.leaderboard;
+  }
+);
+
+export const fetchAllBalanceHistory = createAsyncThunk(
+  "users/fetchAllBalanceHistory",
+  async () => {
+    const data = await makeRequest.get("/users/allBalanceHistory");
+    return data.allBalanceHistory;
   }
 );
 
@@ -99,6 +109,9 @@ export const usersSlice = createSlice({
     );
     builder.addCase(fetchLeaderboard.fulfilled, (state, action) => {
       state.leaderboard = action.payload;
+    });
+    builder.addCase(fetchAllBalanceHistory.fulfilled, (state, action) => {
+      state.allBalanceHistory = action.payload;
     });
   },
 });

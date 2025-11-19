@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   fetchUserBalanceHistory,
   userBalanceHistorySelector,
   fetchLeaderboard,
   leaderboardSelector,
+  fetchAllBalanceHistory,
+  allBalanceHistorySelector,
 } from "store/usersSlice";
 import {
   fetchCurrentEpisode,
@@ -52,36 +54,99 @@ const Home = () => {
   const bets = useSelector(betsSelector);
   const { user: sessionUser } = useSelector(sessionSelector);
   const leaderboard = useSelector(leaderboardSelector);
+  const allBalanceHistory = useSelector(allBalanceHistorySelector);
+
+  // State to manage which users' lines are visible
+  const [visibleUsers, setVisibleUsers] = useState({});
 
   useEffect(() => {
     dispatch(fetchUserBalanceHistory());
     dispatch(fetchCurrentEpisode());
     dispatch(fetchLeaderboard());
+    dispatch(fetchAllBalanceHistory());
     if (currentEpisode) {
       dispatch(fetchBets({ episodeId: currentEpisode.number }));
     }
   }, [currentEpisode?.number]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Initialize visible users - show only session user by default
+  useEffect(() => {
+    if (allBalanceHistory.length > 0 && sessionUser && Object.keys(visibleUsers).length === 0) {
+      const initialVisible = {};
+      allBalanceHistory.forEach((user) => {
+        initialVisible[user.id] = user.id === sessionUser.id;
+      });
+      setVisibleUsers(initialVisible);
+    }
+  }, [allBalanceHistory, sessionUser]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Calculate current balance
   const allDeltas = balanceData.reduce((acc, curr) => acc + curr.delta, 0);
   const currentBalance = 100 + allDeltas;
 
-  // Prepare chart data
-  const chartData = useMemo(() => {
-    let runningBalance = 100;
-    const data = [{ episode: "Start", balance: 100, delta: 0 }];
+  // Color palette for different users
+  const userColors = useMemo(() => {
+    const colors = [
+      "#2c5f4f", // Primary green
+      "#614051", // Secondary purple
+      "#c23b22", // Red
+      "#d4af37", // Gold
+      "#4682b4", // Steel blue
+      "#8b4513", // Saddle brown
+      "#2f4f4f", // Dark slate gray
+      "#8b008b", // Dark magenta
+      "#ff8c00", // Dark orange
+      "#20b2aa", // Light sea green
+    ];
 
-    balanceData.forEach((item) => {
-      runningBalance += item.delta;
-      data.push({
-        episode: `Ep ${item.episode.number}`,
-        balance: runningBalance,
-        delta: item.delta,
+    const colorMap = {};
+    allBalanceHistory.forEach((user, index) => {
+      colorMap[user.id] = colors[index % colors.length];
+    });
+    return colorMap;
+  }, [allBalanceHistory]);
+
+  // Prepare chart data for all users
+  const chartData = useMemo(() => {
+    if (allBalanceHistory.length === 0) return [];
+
+    // Get all unique episodes
+    const episodeSet = new Set();
+    allBalanceHistory.forEach((user) => {
+      user.userDeltas.forEach((delta) => {
+        episodeSet.add(delta.episode.number);
       });
+    });
+    const episodes = Array.from(episodeSet).sort((a, b) => a - b);
+
+    // Build chart data
+    const data = [{ episode: "Start" }];
+
+    // Initialize start balances for all users
+    allBalanceHistory.forEach((user) => {
+      data[0][user.id] = 100;
+    });
+
+    // Calculate running balances for each episode
+    episodes.forEach((episodeNumber) => {
+      const episodeData = { episode: `Ep ${episodeNumber}` };
+
+      allBalanceHistory.forEach((user) => {
+        // Find delta for this user and episode
+        const delta = user.userDeltas.find((d) => d.episode.number === episodeNumber);
+
+        // Get previous balance
+        const previousBalance = data[data.length - 1][user.id];
+
+        // Calculate new balance
+        episodeData[user.id] = previousBalance + (delta ? delta.delta : 0);
+      });
+
+      data.push(episodeData);
     });
 
     return data;
-  }, [balanceData]);
+  }, [allBalanceHistory]);
 
   // Filter bets
   const myBets = useMemo(() => {
@@ -100,6 +165,14 @@ const Home = () => {
   const balanceChange =
     balanceData.length > 0 ? balanceData[balanceData.length - 1]?.delta : 0;
   const isPositive = balanceChange >= 0;
+
+  // Toggle user visibility in chart
+  const toggleUserVisibility = (userId) => {
+    setVisibleUsers((prev) => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }));
+  };
 
   return (
     <Box
@@ -221,41 +294,69 @@ const Home = () => {
       {/* Balance History Chart */}
       <Card sx={{ mb: 4 }}>
         <CardContent>
-          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
             Balance History
           </Typography>
+
+          {/* User toggle controls */}
+          {allBalanceHistory.length > 0 && (
+            <Box sx={{ mb: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+              {allBalanceHistory.map((user) => (
+                <Chip
+                  key={user.id}
+                  label={`${user.firstName} ${user.lastName}`}
+                  onClick={() => toggleUserVisibility(user.id)}
+                  sx={{
+                    backgroundColor: visibleUsers[user.id]
+                      ? userColors[user.id]
+                      : "#e8e3dc",
+                    color: visibleUsers[user.id] ? "white" : "#6b6562",
+                    fontWeight: visibleUsers[user.id] ? 600 : 400,
+                    "&:hover": {
+                      backgroundColor: visibleUsers[user.id]
+                        ? userColors[user.id]
+                        : "#d3cfc7",
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+
           {chartData.length > 1 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#5a8f7b" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#5a8f7b" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e8e3dc" />
                 <XAxis dataKey="episode" stroke="#6b6562" />
                 <YAxis stroke="#6b6562" />
                 <Tooltip
-                  formatter={(value, name) => [
-                    `£${parseFloat(value).toFixed(2)}`,
-                    name === "balance" ? "Balance" : "Change",
-                  ]}
+                  formatter={(value, name) => {
+                    const user = allBalanceHistory.find((u) => u.id === name);
+                    return [
+                      `£${parseFloat(value).toFixed(2)}`,
+                      user ? `${user.firstName} ${user.lastName}` : name,
+                    ];
+                  }}
                   contentStyle={{
                     backgroundColor: "#faf7f2",
                     border: "1px solid #e8e3dc",
                     borderRadius: "8px",
                   }}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="balance"
-                  stroke="#2c5f4f"
-                  fillOpacity={1}
-                  fill="url(#colorBalance)"
-                  strokeWidth={3}
-                />
-              </AreaChart>
+                {allBalanceHistory.map((user) =>
+                  visibleUsers[user.id] ? (
+                    <Line
+                      key={user.id}
+                      type="monotone"
+                      dataKey={user.id}
+                      stroke={userColors[user.id]}
+                      strokeWidth={user.id === sessionUser?.id ? 3 : 2}
+                      dot={user.id === sessionUser?.id}
+                      activeDot={{ r: 6 }}
+                    />
+                  ) : null
+                )}
+              </LineChart>
             </ResponsiveContainer>
           ) : (
             <Typography
