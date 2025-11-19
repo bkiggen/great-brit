@@ -10,6 +10,7 @@ import {
 } from "store/episodesSlice";
 import { fetchBets, betsSelector } from "store/betsSlice";
 import { sessionSelector } from "store/sessionSlice";
+import { getLowestFraction } from "helpers/getLowestFraction";
 
 import {
   Box,
@@ -313,7 +314,7 @@ const Home = () => {
                       >
                         <Box>
                           <Typography variant="caption" color="text.secondary">
-                            Odds: {bet.odds} | Max: £{bet.maxLose?.toFixed(2)}
+                            Odds: {getLowestFraction(bet.odds)} | Max: £{bet.maxLose?.toFixed(2)}
                           </Typography>
                         </Box>
                         <Chip
@@ -388,7 +389,7 @@ const Home = () => {
                         }}
                       >
                         <Typography variant="caption" color="text.secondary">
-                          Odds: {bet.odds} | Max: £{bet.maxLose?.toFixed(2)}
+                          Odds: {getLowestFraction(bet.odds)} | Max: £{bet.maxLose?.toFixed(2)}
                         </Typography>
                         <Chip
                           label={
