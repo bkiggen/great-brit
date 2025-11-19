@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   fetchUserBalanceHistory,
   userBalanceHistorySelector,
+  fetchLeaderboard,
+  leaderboardSelector,
 } from "store/usersSlice";
 import {
   fetchCurrentEpisode,
@@ -49,10 +51,12 @@ const Home = () => {
   const currentEpisode = useSelector(currentEpisodeSelector);
   const bets = useSelector(betsSelector);
   const { user: sessionUser } = useSelector(sessionSelector);
+  const leaderboard = useSelector(leaderboardSelector);
 
   useEffect(() => {
     dispatch(fetchUserBalanceHistory());
     dispatch(fetchCurrentEpisode());
+    dispatch(fetchLeaderboard());
     if (currentEpisode) {
       dispatch(fetchBets({ episodeId: currentEpisode.number }));
     }
@@ -259,6 +263,105 @@ const Home = () => {
           ) : (
             <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
               No balance history yet. Complete an episode to see your progress!
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Leaderboard */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Leaderboard
+          </Typography>
+          {leaderboard.length > 0 ? (
+            <Box>
+              {leaderboard.map((user, index) => (
+                <Box
+                  key={user.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    p: 2,
+                    mb: 1,
+                    borderRadius: 1,
+                    backgroundColor:
+                      user.id === sessionUser?.id
+                        ? "#f5f5dc"
+                        : index === 0
+                        ? "#fff9e6"
+                        : "transparent",
+                    border: "1px solid",
+                    borderColor:
+                      user.id === sessionUser?.id
+                        ? "#2c5f4f"
+                        : index === 0
+                        ? "#ffd700"
+                        : "#e8e3dc",
+                    boxShadow:
+                      user.id === sessionUser?.id
+                        ? "0 2px 4px rgba(44, 95, 79, 0.1)"
+                        : "none",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 700,
+                        minWidth: "40px",
+                        textAlign: "center",
+                        color:
+                          index === 0
+                            ? "#d4af37"
+                            : index === 1
+                            ? "#c0c0c0"
+                            : index === 2
+                            ? "#cd7f32"
+                            : "#6b6562",
+                        fontSize: index === 0 ? "24px" : "20px",
+                      }}
+                    >
+                      {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: user.id === sessionUser?.id ? 600 : 400,
+                      }}
+                    >
+                      {user.firstName} {user.lastName}
+                      {user.id === sessionUser?.id && (
+                        <Chip
+                          label="You"
+                          size="small"
+                          color="primary"
+                          sx={{ ml: 1 }}
+                        />
+                      )}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 700,
+                      color:
+                        user.balance > 100
+                          ? "#2c5f4f"
+                          : user.balance < 100
+                          ? "#c23b22"
+                          : "#6b6562",
+                    }}
+                  >
+                    £{user.balance.toFixed(2)}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
+              No leaderboard data available
             </Typography>
           )}
         </CardContent>

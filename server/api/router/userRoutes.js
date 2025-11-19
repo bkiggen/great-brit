@@ -20,6 +20,46 @@ const userRoutes = (router) => {
     res.json({ users });
   });
 
+  // GET USERS LEADERBOARD
+  router.get("/users/leaderboard", authenticateUser, async (req, res) => {
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          userDeltas: {
+            select: {
+              delta: true,
+            },
+          },
+        },
+      });
+
+      // Calculate balance for each user (starting balance is 100)
+      const leaderboard = users.map((user) => {
+        const totalDelta = user.userDeltas.reduce(
+          (sum, delta) => sum + delta.delta,
+          0
+        );
+        return {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          balance: 100 + totalDelta,
+        };
+      });
+
+      // Sort by balance in descending order
+      leaderboard.sort((a, b) => b.balance - a.balance);
+
+      res.json({ leaderboard });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // GET USERS BALANCE DATA
   router.get("/users/balanceHistory", authenticateUser, async (req, res) => {
     const { id } = req.query;

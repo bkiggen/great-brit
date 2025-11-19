@@ -4,10 +4,12 @@ import { makeRequest } from "../helpers/makeRequest";
 export const usersSelector = (state) => state.users.list;
 export const userBalanceHistorySelector = (state) =>
   state.users.userBalanceHistory;
+export const leaderboardSelector = (state) => state.users.leaderboard;
 
 const initialState = {
   list: [],
   userBalanceHistory: [],
+  leaderboard: [],
 };
 
 export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
@@ -24,6 +26,14 @@ export const fetchUserBalanceHistory = createAsyncThunk(
       id: state.session.user.id,
     });
     return data.userBalanceHistory;
+  }
+);
+
+export const fetchLeaderboard = createAsyncThunk(
+  "users/fetchLeaderboard",
+  async () => {
+    const data = await makeRequest.get("/users/leaderboard");
+    return data.leaderboard;
   }
 );
 
@@ -87,6 +97,9 @@ export const usersSlice = createSlice({
         state.list = action.payload;
       }
     );
+    builder.addCase(fetchLeaderboard.fulfilled, (state, action) => {
+      state.leaderboard = action.payload;
+    });
   },
 });
 
