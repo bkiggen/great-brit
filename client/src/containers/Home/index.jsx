@@ -97,7 +97,8 @@ const Home = () => {
     );
   }, [bets, sessionUser]);
 
-  const balanceChange = balanceData.length > 0 ? balanceData[balanceData.length - 1]?.delta : 0;
+  const balanceChange =
+    balanceData.length > 0 ? balanceData[balanceData.length - 1]?.delta : 0;
   const isPositive = balanceChange >= 0;
 
   return (
@@ -110,17 +111,6 @@ const Home = () => {
         margin: "0 auto",
       }}
     >
-      <Typography
-        variant="h3"
-        sx={{
-          mb: 4,
-          fontWeight: 700,
-          fontSize: { xs: "28px", md: "40px" },
-        }}
-      >
-        Dashboard
-      </Typography>
-
       {/* Top Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Current Balance Card */}
@@ -147,7 +137,8 @@ const Home = () => {
                   <TrendingDown sx={{ mr: 0.5, fontSize: 20 }} />
                 )}
                 <Typography variant="body2">
-                  {isPositive ? "+" : ""}£{balanceChange.toFixed(2)} last episode
+                  {isPositive ? "+" : ""}£{balanceChange.toFixed(2)} last
+                  episode
                 </Typography>
               </Box>
             </CardContent>
@@ -199,7 +190,10 @@ const Home = () => {
                 }}
               >
                 <Box sx={{ textAlign: "center" }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: "#2c5f4f" }}>
+                  <Typography
+                    variant="h4"
+                    sx={{ fontWeight: 700, color: "#2c5f4f" }}
+                  >
                     {myBets.length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -208,7 +202,10 @@ const Home = () => {
                 </Box>
                 <Divider orientation="vertical" flexItem />
                 <Box sx={{ textAlign: "center" }}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: "#614051" }}>
+                  <Typography
+                    variant="h4"
+                    sx={{ fontWeight: 700, color: "#614051" }}
+                  >
                     {eligibleBets.length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -261,7 +258,11 @@ const Home = () => {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ py: 4, textAlign: "center" }}
+            >
               No balance history yet. Complete an episode to see your progress!
             </Typography>
           )}
@@ -323,7 +324,13 @@ const Home = () => {
                         fontSize: index === 0 ? "24px" : "20px",
                       }}
                     >
-                      {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`}
+                      {index === 0
+                        ? "🥇"
+                        : index === 1
+                        ? "🥈"
+                        : index === 2
+                        ? "🥉"
+                        : `${index + 1}.`}
                     </Typography>
                     <Typography
                       variant="body1"
@@ -360,7 +367,11 @@ const Home = () => {
               ))}
             </Box>
           ) : (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ py: 4, textAlign: "center" }}
+            >
               No leaderboard data available
             </Typography>
           )}
@@ -417,7 +428,8 @@ const Home = () => {
                       >
                         <Box>
                           <Typography variant="caption" color="text.secondary">
-                            Odds: {getLowestFraction(bet.odds)} | Max: £{bet.maxLose?.toFixed(2)}
+                            Odds: {getLowestFraction(bet.odds)} | Max: £
+                            {bet.maxLose?.toFixed(2)}
                           </Typography>
                         </Box>
                         <Chip
@@ -431,7 +443,11 @@ const Home = () => {
                     </Paper>
                   ))
                 ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ py: 4, textAlign: "center" }}
+                  >
                     No bets available to accept
                   </Typography>
                 )}
@@ -492,7 +508,8 @@ const Home = () => {
                         }}
                       >
                         <Typography variant="caption" color="text.secondary">
-                          Odds: {getLowestFraction(bet.odds)} | Max: £{bet.maxLose?.toFixed(2)}
+                          Odds: {getLowestFraction(bet.odds)} | Max: £
+                          {bet.maxLose?.toFixed(2)}
                         </Typography>
                         <Chip
                           label={
@@ -502,14 +519,20 @@ const Home = () => {
                           }
                           size="small"
                           color={
-                            bet.acceptedUsers?.length > 0 ? "success" : "default"
+                            bet.acceptedUsers?.length > 0
+                              ? "success"
+                              : "default"
                           }
                         />
                       </Box>
                     </Paper>
                   ))
                 ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ py: 4, textAlign: "center" }}
+                  >
                     You haven't created any bets yet
                   </Typography>
                 )}
