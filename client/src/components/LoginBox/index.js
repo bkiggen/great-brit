@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { sessionSelector } from "store";
 import { useSelector, useDispatch } from "react-redux";
 import { loginUser } from "store/sessionSlice";
@@ -177,6 +177,28 @@ const LoginBox = () => {
                 ),
               }}
             />
+
+            {isLogin && (
+              <Box sx={{ textAlign: "right", mt: 1 }}>
+                <Button
+                  component={Link}
+                  to="/forgot-password"
+                  sx={{
+                    color: "#2c5f4f",
+                    textTransform: "none",
+                    fontSize: "14px",
+                    p: 0,
+                    minWidth: "auto",
+                    "&:hover": {
+                      backgroundColor: "transparent",
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  Forgot Password?
+                </Button>
+              </Box>
+            )}
 
             <Button
               type="submit"
