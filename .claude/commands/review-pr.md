@@ -53,7 +53,6 @@ Use `gh pr create` with:
   ```
   ## Summary
   - Brief description of changes
-  - Link to Trello ticket
 
   ## Changes
   - List of what was modified
@@ -62,8 +61,8 @@ Use `gh pr create` with:
   - How to verify the changes work
   - Based on ticket's testing considerations
 
-  ## Ticket
-  [Link to Trello card]
+  ## Trello
+  Card: [SHORT_ID](full_url)
 
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   ```

@@ -46,8 +46,8 @@ Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `style`, `test`
 - [ ] How to verify changes work
 - [ ] Edge cases to check
 
-## Ticket
-[Trello link if applicable]
+## Trello
+Card: [SHORT_ID](full_url) or N/A
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
@@ -73,7 +73,7 @@ Based on the commits and file changes:
 2. **Summary**: Explain what changed and why (from user's perspective)
 3. **Changes**: List modified files organized by area
 4. **Testing**: Derive verification steps from the changes
-5. **Ticket**: Extract Trello link if present in commits
+5. **Trello**: Extract card short ID and full URL from commits (format: `[SHORT_ID](url)`)
 
 ### Step 4: Check if docs need updating
 If changes affect documented behavior, update docs first:
@@ -93,8 +93,8 @@ gh pr create --title "type: description" --body "$(cat <<'EOF'
 ## Testing
 - [ ] verification steps
 
-## Ticket
-link or N/A
+## Trello
+Card: [SHORT_ID](url) or N/A
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF

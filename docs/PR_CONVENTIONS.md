@@ -46,8 +46,8 @@ This document defines the standard format for writing clear, informative pull re
 - Manual testing steps
 - Edge cases to check
 
-## Ticket
-[Link to Trello card if applicable]
+## Trello
+Card: [SHORT_ID](full_url)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
@@ -106,7 +106,7 @@ Before submitting a PR, verify:
 - [ ] Summary explains what and why
 - [ ] Changes section lists modified files
 - [ ] Testing section includes verification steps
-- [ ] Linked to Trello ticket if applicable
+- [ ] Trello section includes card short ID in link format: `[SHORT_ID](url)`
 - [ ] No unrelated changes included
 - [ ] Self-reviewed the diff
 
@@ -170,8 +170,8 @@ Including unrelated changes, refactors, or "drive-by fixes" that make review har
 - [ ] Test with invalid file types (should show error)
 - [ ] Test file size limits (> 5MB should fail)
 
-## Ticket
-https://trello.com/c/xyz123
+## Trello
+Card: [xyz123](https://trello.com/c/xyz123)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
@@ -196,8 +196,8 @@ https://trello.com/c/xyz123
 - [ ] Check submit button is disabled while loading
 - [ ] Verify error handling still works
 
-## Ticket
-https://trello.com/c/abc456
+## Trello
+Card: [abc456](https://trello.com/c/abc456)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
@@ -235,4 +235,4 @@ When creating a PR:
 4. Include file paths in Changes section
 5. Derive testing steps from acceptance criteria if a ticket exists
 6. Keep the PR focused - flag if unrelated changes are included
-7. Link to Trello ticket when available
+7. Include Trello card short ID in link text (e.g., `[abc123](url)`) for GitHub Power-Up detection
