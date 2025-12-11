@@ -53,7 +53,13 @@ export const logoutUser = createAsyncThunk("session/logoutUser", async () => {
 export const sessionSlice = createSlice({
   name: "session",
   initialState,
-  reducers: {},
+  reducers: {
+    clearSession: (state) => {
+      state.user = null;
+      state.sessionToken = null;
+      state.expiresAt = null;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(loginUser.pending, (state) => {
       state.loading = true;
@@ -75,6 +81,8 @@ export const sessionSlice = createSlice({
     });
   },
 });
+
+export const { clearSession } = sessionSlice.actions;
 
 export const sessionSelector = (state) => state.session;
 export const selectUser = (state) => state.session.user;

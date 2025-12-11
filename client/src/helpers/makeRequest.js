@@ -1,5 +1,6 @@
 import { store } from "../store";
-import { showSuccess, showError } from "./notifier";
+import { showSuccess, showError, showWarning } from "./notifier";
+import { clearSession } from "../store/sessionSlice";
 
 // List of success messages for different operations
 const getSuccessMessage = (method, url) => {
@@ -60,6 +61,15 @@ export const fetchFromApi = async (url, method, body) => {
 
   if (!res.ok) {
     const errorData = await res.json();
+
+    // Handle expired/invalid session token
+    if (res.status === 401) {
+      store.dispatch(clearSession());
+      showWarning("Your session has expired. Please log in again.");
+      window.location.href = "/login";
+      return;
+    }
+
     const error = new Error(errorData.message || "Request failed");
     error.response = {
       status: res.status,
