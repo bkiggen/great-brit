@@ -16,6 +16,7 @@ client/node_modules
 !/server/
 !/docs/
 !/.claude/
+!/.github/
 
 # Unignore Railway deployment files
 !/railway.json
