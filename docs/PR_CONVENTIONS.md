@@ -35,7 +35,6 @@ This document defines the standard format for writing clear, informative pull re
 ## Summary
 - Concise bullet points explaining WHAT changed and WHY
 - Focus on the impact, not implementation details
-- Link to related Trello ticket if applicable
 
 ## Changes
 - List of files/components modified
@@ -46,8 +45,8 @@ This document defines the standard format for writing clear, informative pull re
 - Manual testing steps
 - Edge cases to check
 
-## Ticket
-[Link to Trello card if applicable]
+## Trello
+[Link to card or N/A]
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
@@ -106,7 +105,7 @@ Before submitting a PR, verify:
 - [ ] Summary explains what and why
 - [ ] Changes section lists modified files
 - [ ] Testing section includes verification steps
-- [ ] Linked to Trello ticket if applicable
+- [ ] Trello section links to card (if applicable)
 - [ ] No unrelated changes included
 - [ ] Self-reviewed the diff
 
@@ -170,7 +169,7 @@ Including unrelated changes, refactors, or "drive-by fixes" that make review har
 - [ ] Test with invalid file types (should show error)
 - [ ] Test file size limits (> 5MB should fail)
 
-## Ticket
+## Trello
 https://trello.com/c/xyz123
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
@@ -196,7 +195,7 @@ https://trello.com/c/xyz123
 - [ ] Check submit button is disabled while loading
 - [ ] Verify error handling still works
 
-## Ticket
+## Trello
 https://trello.com/c/abc456
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
@@ -235,4 +234,4 @@ When creating a PR:
 4. Include file paths in Changes section
 5. Derive testing steps from acceptance criteria if a ticket exists
 6. Keep the PR focused - flag if unrelated changes are included
-7. Link to Trello ticket when available
+7. Include Trello link in the Trello section, then attach PR to the card via MCP

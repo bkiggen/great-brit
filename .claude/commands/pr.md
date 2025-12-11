@@ -1,6 +1,6 @@
 ---
 description: Create a pull request for the current branch
-allowed-tools: Bash(git:*), Bash(gh:*), Read, Glob, Edit
+allowed-tools: Bash(git:*), Bash(gh:*), Read, Glob, Edit, mcp__trello__attach_file_to_card
 ---
 
 ## Context
@@ -37,7 +37,6 @@ Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `style`, `test`
 ## Summary
 - WHAT changed and WHY (user/system impact, not implementation)
 - Action verbs: Add, Update, Fix, Remove, Refactor
-- Link to Trello ticket if mentioned in commits
 
 ## Changes
 - List modified files by area (Frontend, Backend, Database)
@@ -46,8 +45,8 @@ Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `style`, `test`
 - [ ] How to verify changes work
 - [ ] Edge cases to check
 
-## Ticket
-[Trello link if applicable]
+## Trello
+[Link to card or N/A]
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
@@ -73,7 +72,7 @@ Based on the commits and file changes:
 2. **Summary**: Explain what changed and why (from user's perspective)
 3. **Changes**: List modified files organized by area
 4. **Testing**: Derive verification steps from the changes
-5. **Ticket**: Extract Trello link if present in commits
+5. **Trello**: Extract card short ID and full URL from commits (format: `[SHORT_ID](url)`)
 
 ### Step 4: Check if docs need updating
 If changes affect documented behavior, update docs first:
@@ -93,13 +92,19 @@ gh pr create --title "type: description" --body "$(cat <<'EOF'
 ## Testing
 - [ ] verification steps
 
-## Ticket
-link or N/A
+## Trello
+[Link to card or N/A]
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
 
-### Step 6: Report
-Return the PR URL so the user can review it.
+### Step 6: Attach PR to Trello card
+If a Trello card was referenced in the commits, use `mcp__trello__attach_file_to_card` to attach the PR URL to the card:
+- `cardId`: The card's short ID (e.g., `NlzYV4Sn` from `https://trello.com/c/NlzYV4Sn`)
+- `fileUrl`: The PR URL returned from `gh pr create`
+- `name`: `PR #N: <pr title>`
+
+### Step 7: Report
+Return the PR URL so the user can review it. Confirm if the PR was attached to Trello.
