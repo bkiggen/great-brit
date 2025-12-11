@@ -1,6 +1,6 @@
 ---
 description: Create a pull request for the current branch
-allowed-tools: Bash(git:*), Bash(gh:*), Read, Glob, Edit
+allowed-tools: Bash(git:*), Bash(gh:*), Read, Glob, Edit, mcp__trello__attach_file_to_card
 ---
 
 ## Context
@@ -37,7 +37,6 @@ Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `style`, `test`
 ## Summary
 - WHAT changed and WHY (user/system impact, not implementation)
 - Action verbs: Add, Update, Fix, Remove, Refactor
-- Link to Trello ticket if mentioned in commits
 
 ## Changes
 - List modified files by area (Frontend, Backend, Database)
@@ -47,7 +46,7 @@ Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `style`, `test`
 - [ ] Edge cases to check
 
 ## Trello
-Card: [SHORT_ID](full_url) or N/A
+[Link to card or N/A]
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
@@ -94,12 +93,18 @@ gh pr create --title "type: description" --body "$(cat <<'EOF'
 - [ ] verification steps
 
 ## Trello
-Card: [SHORT_ID](url) or N/A
+[Link to card or N/A]
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
 
-### Step 6: Report
-Return the PR URL so the user can review it.
+### Step 6: Attach PR to Trello card
+If a Trello card was referenced in the commits, use `mcp__trello__attach_file_to_card` to attach the PR URL to the card:
+- `cardId`: The card's short ID (e.g., `NlzYV4Sn` from `https://trello.com/c/NlzYV4Sn`)
+- `fileUrl`: The PR URL returned from `gh pr create`
+- `name`: `PR #N: <pr title>`
+
+### Step 7: Report
+Return the PR URL so the user can review it. Confirm if the PR was attached to Trello.
