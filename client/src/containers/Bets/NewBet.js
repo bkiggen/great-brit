@@ -15,6 +15,8 @@ import { createBet } from "store/betsSlice";
 import { fetchUsers, usersSelector } from "store/usersSlice";
 import { sessionSelector } from "store/sessionSlice";
 
+const ODDS_OPTIONS = Array.from({ length: 100 }, (_, i) => i + 1);
+
 const Bets = () => {
   const dispatch = useDispatch();
   const users = useSelector(usersSelector);
@@ -101,9 +103,7 @@ const Bets = () => {
             variant="outlined"
             sx={{ minWidth: "100px", marginRight: "12px" }}
           >
-            {[
-              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-            ].map((odds) => (
+            {ODDS_OPTIONS.map((odds) => (
               <MenuItem key={odds} value={odds}>
                 {odds}
               </MenuItem>
@@ -119,7 +119,7 @@ const Bets = () => {
             variant="outlined"
             sx={{ minWidth: "100px", marginLeft: "12px", marginRight: "12px" }}
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((odds) => (
+            {ODDS_OPTIONS.map((odds) => (
               <MenuItem key={odds} value={odds}>
                 {odds}
               </MenuItem>
