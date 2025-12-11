@@ -32,5 +32,9 @@
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "trello"
+  ],
+  "enableAllProjectMcpServers": true
 }
