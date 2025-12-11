@@ -36,6 +36,7 @@ import {
 import BetTable from "containers/Bets/BetTable";
 import CreateEpisode from "./CreateEpisode";
 import ManageStars from "./ManageStars";
+import SetCurrentEpisode from "./SetCurrentEpisode";
 import Events from "../../components/Events";
 
 import { styles } from "./styles";
@@ -280,6 +281,13 @@ const Episodes = ({ admin }) => {
                   </Box>
                 )}
               </Box>
+
+              {/* Set Current Episode (Admin Only) */}
+              {admin && (
+                <Box sx={{ mt: 3, pt: 3, borderTop: 1, borderColor: "divider" }}>
+                  <SetCurrentEpisode episodes={episodes} />
+                </Box>
+              )}
             </Box>
           </Card>
 

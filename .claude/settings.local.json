@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx prisma init)",
+      "Bash(psql:*)",
+      "Bash(pg_isready:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(timeout 5 npm start)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9:*)",
+      "Bash(pkill:*)",
+      "Bash(killall:*)",
+      "Bash(curl:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(for file in api/router/*.js)",
+      "Bash(do echo \"=== $file ===\" grep \"router\\.\" \"$file\")",
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd Railway deployment configuration\n\n- Add nixpacks.toml for Railway build configuration\n- Update railway.json with build commands for server subdirectory\n- Add comprehensive Railway deployment guide\n- Update .gitignore to include Railway config files\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

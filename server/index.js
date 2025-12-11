@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 8000;
 
 // CORS configuration - allow both local and production domains
 const allowedOrigins = [
-  "http://localhost:3000",
+  "http://localhost:3002",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -30,7 +30,7 @@ app.use(
 
       // In production (when NODE_ENV is production), allow all origins
       // This is safe when serving the frontend from the same server
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.NODE_ENV === "production") {
         return callback(null, true);
       }
 
@@ -53,7 +53,7 @@ const io = new Server(httpServer, {
       if (!origin) return callback(null, true);
 
       // In production, allow all origins (safe when serving from same server)
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.NODE_ENV === "production") {
         return callback(null, true);
       }
 
