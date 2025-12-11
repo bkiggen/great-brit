@@ -10,6 +10,8 @@ import Episodes from "containers/Episodes";
 import Admin from "containers/Admin";
 import Login from "containers/Login";
 import Profile from "containers/Profile";
+import ForgotPassword from "containers/ForgotPassword";
+import ResetPassword from "containers/ResetPassword";
 
 const ProtectedRoute = ({ element }) => {
   const session = useSelector(sessionSelector);
@@ -57,6 +59,14 @@ const router = createBrowserRouter([
       {
         path: "/login",
         element: <Login />,
+      },
+      {
+        path: "/forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "/reset-password/:token",
+        element: <ResetPassword />,
       },
       {
         path: "*",
