@@ -16,7 +16,9 @@ const LinkItem = ({ to, label }) => {
           "&:hover > *": { color: "lightpink" },
         }}
       >
-        <Typography sx={{ color: isActive ? "lightpink" : "white" }}>
+        <Typography
+          sx={{ color: isActive ? "lightpink" : "white", fontSize: 20 }}
+        >
           {label}
         </Typography>
       </Button>
