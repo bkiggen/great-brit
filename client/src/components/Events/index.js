@@ -292,7 +292,7 @@ const AdminEvents = ({ episodeId }) => {
                 {user.delta && (
                   <Box
                     sx={{
-                      color: user.delta > 0 ? "green" : "red",
+                      color: user.delta > 0 ? "green" : user.delta < 0 ? "red" : "inherit",
                       fontWeight: 600,
                       marginRight: "12px",
                     }}
