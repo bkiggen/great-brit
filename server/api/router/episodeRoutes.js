@@ -1,6 +1,6 @@
 import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
-import { splitArraysByLength } from "../../helpers/splits.js";
+import { getSplit } from "../../helpers/splits.js";
 import { getCurrentSeason, getCurrentEpisode } from "../../helpers/season.js";
 
 const episodeRoutes = (router) => {
@@ -336,7 +336,9 @@ const episodeRoutes = (router) => {
           eventType: true,
         },
       });
-      const split = splitArraysByLength[episode.number];
+      const episodeStarCount = await prisma.episodeStar.count({
+        where: { episodeId: episodeKey },
+      });
 
       const userDeltaPromises = allUsers.map(async (user) => {
         let totalDelta = 0;
@@ -387,9 +389,10 @@ const episodeRoutes = (router) => {
           totalDelta += deltaChange;
         }
 
+        const split = getSplit(rankings.length) || getSplit(episodeStarCount);
         for (const ranking of rankings) {
           const { rank } = ranking;
-          const multiplier = split[split.length - rank];
+          const multiplier = split?.[split.length - rank] ?? 0;
 
           const eventsForStar = eventsForEpisode.filter((event) => {
             return event.star && event.star.id === ranking.star.id;
