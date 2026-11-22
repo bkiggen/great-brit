@@ -14,8 +14,10 @@ import {
 import { createBet } from "store/betsSlice";
 import { fetchUsers, usersSelector } from "store/usersSlice";
 import { sessionSelector } from "store/sessionSlice";
+import BetTerms from "components/BetTerms";
 
-const ODDS_OPTIONS = Array.from({ length: 100 }, (_, i) => i + 1);
+// Allowed odds: 1 to 20 .. 20 to 1 (server checks the same range)
+const ODDS_OPTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
 
 const Bets = () => {
   const dispatch = useDispatch();
@@ -25,11 +27,6 @@ const Bets = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedOdds, setSelectedOdds] = useState([1, 1]);
   const [maxLose, setMaxLose] = useState("");
-
-  // Fractional odds a-b: a bet of maxLose wins maxLose * a / b per accepter
-  const maxWin =
-    parseFloat(maxLose) *
-    (parseFloat(selectedOdds[0]) / parseFloat(selectedOdds[1]));
 
   const handleUserChange = (event) => {
     setSelectedUsers(event.target.value);
@@ -41,7 +38,6 @@ const Bets = () => {
       odds: selectedOdds[0] / selectedOdds[1],
       maxLose: parseFloat(maxLose),
       eligibleUsers: selectedUsers,
-      maxWin,
     };
 
     dispatch(createBet(betData));
@@ -83,26 +79,28 @@ const Bets = () => {
         fullWidth
         sx={{ display: "flex", alignItems: "center", marginTop: "24px" }}
       />
-      <Grid
-        container
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          marginTop: "24px",
-          gap: 2,
-          flexWrap: "wrap",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+      <Box sx={{ marginTop: "24px" }}>
+        <Typography sx={{ fontSize: "14px", color: "GrayText", mb: 1 }}>
+          Odds — how unlikely is it? Pick what you bet and what you win.
+          Use a big second number for long shots (e.g. 1 to 10).
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            flexWrap: "wrap",
+          }}
+        >
+          <span>Bet</span>
           <TextField
             select
-            label="Odds"
+            size="small"
             value={selectedOdds[0]}
             onChange={(e) =>
               setSelectedOdds((prev) => [e.target.value, prev[1]])
             }
-            variant="outlined"
-            sx={{ minWidth: "100px", marginRight: "12px" }}
+            sx={{ minWidth: "80px" }}
           >
             {ODDS_OPTIONS.map((odds) => (
               <MenuItem key={odds} value={odds}>
@@ -110,15 +108,15 @@ const Bets = () => {
               </MenuItem>
             ))}
           </TextField>
-          <span>to</span>
+          <span>to win</span>
           <TextField
             select
+            size="small"
             value={selectedOdds[1]}
             onChange={(e) =>
               setSelectedOdds((prev) => [prev[0], e.target.value])
             }
-            variant="outlined"
-            sx={{ minWidth: "100px", marginLeft: "12px", marginRight: "12px" }}
+            sx={{ minWidth: "80px" }}
           >
             {ODDS_OPTIONS.map((odds) => (
               <MenuItem key={odds} value={odds}>
@@ -128,32 +126,33 @@ const Bets = () => {
           </TextField>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <TextField
-            label="Max Loss"
-            variant="outlined"
-            value={maxLose}
-            onChange={(e) => setMaxLose(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">£</InputAdornment>
-              ),
-            }}
-            sx={{ marginRight: "12px" }}
+        <TextField
+          label="Your stake per person"
+          helperText="What you pay each person who accepts if you lose"
+          variant="outlined"
+          type="number"
+          value={maxLose}
+          onChange={(e) => setMaxLose(e.target.value)}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">£</InputAdornment>,
+          }}
+          sx={{ mt: 2, width: { xs: "100%", sm: "260px" } }}
+        />
+
+        <Box sx={{ mt: 2 }}>
+          <BetTerms
+            maxLose={maxLose}
+            oddsPair={selectedOdds}
+            accepterCount={selectedUsers.length || undefined}
           />
-          <TextField
-            label="Max Win"
-            variant="outlined"
-            value={maxLose ? maxWin : ""}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">£</InputAdornment>
-              ),
-            }}
-            disabled
-          />
+          {selectedUsers.length > 0 && (
+            <Typography variant="caption" color="text.secondary">
+              Totals assume all {selectedUsers.length} eligible{" "}
+              {selectedUsers.length === 1 ? "person accepts" : "people accept"}.
+            </Typography>
+          )}
         </Box>
-      </Grid>
+      </Box>
       <Grid
         container
         sx={{ marginTop: "18px", display: "flex", flexDirection: "column" }}
