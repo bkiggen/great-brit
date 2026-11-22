@@ -62,6 +62,11 @@ const Home = () => {
     dispatch(fetchCurrentEpisode());
     dispatch(fetchLeaderboard());
     dispatch(fetchAllBalanceHistory());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Always load current-episode bets on open (the bets list is shared with
+  // the Episodes page, which may have loaded an older episode)
+  useEffect(() => {
     if (currentEpisode) {
       dispatch(fetchBets({ episodeId: currentEpisode.id }));
     }
@@ -158,13 +163,16 @@ const Home = () => {
   }, [bets, sessionUser]);
 
   const eligibleBets = useMemo(() => {
+    if (!currentEpisode) return [];
     return bets.filter(
       (bet) =>
+        bet.episode === currentEpisode.id &&
+        bet.won === null &&
         bet.better?.id !== sessionUser?.id &&
         bet.eligibleUsers?.some((user) => user.id === sessionUser?.id) &&
         !bet.acceptedUsers?.some((user) => user.id === sessionUser?.id)
     );
-  }, [bets, sessionUser]);
+  }, [bets, sessionUser, currentEpisode]);
 
   const balanceChange =
     balanceData.length > 0 ? balanceData[balanceData.length - 1]?.delta : 0;
