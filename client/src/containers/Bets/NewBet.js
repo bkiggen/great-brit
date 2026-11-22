@@ -56,7 +56,7 @@ const Bets = () => {
       sx={{
         padding: { xs: "20px", md: "30px" },
         background: "white",
-        boxShadow: "0px 4px 12px rgba(45, 41, 38, 0.08)",
+        boxShadow: "0px 4px 12px rgba(74, 74, 74, 0.08)",
         borderRadius: "12px",
       }}
     >

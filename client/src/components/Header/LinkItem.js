@@ -13,11 +13,19 @@ const LinkItem = ({ to, label }) => {
         variant="text"
         sx={{
           "&:hover": { boxShadow: "none", color: "transparent" },
-          "&:hover > *": { color: "lightpink" },
+          "&:hover > *": { color: "#f7d3de" },
         }}
       >
         <Typography
-          sx={{ color: isActive ? "lightpink" : "white", fontSize: 20 }}
+          sx={{
+            color: isActive ? "#f7d3de" : "white",
+            fontSize: 17,
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            borderBottom: isActive ? "2px solid #f7d3de" : "2px solid transparent",
+            lineHeight: 1.6,
+          }}
         >
           {label}
         </Typography>

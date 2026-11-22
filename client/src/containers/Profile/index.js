@@ -100,7 +100,7 @@ const Profile = () => {
             mb: 2,
           }}
         >
-          <AccountCircle sx={{ fontSize: 48, color: "#5a8f7b", mr: 2 }} />
+          <AccountCircle sx={{ fontSize: 48, color: "#3f8f6b", mr: 2 }} />
           <Typography
             variant="h3"
             sx={{
@@ -121,7 +121,7 @@ const Profile = () => {
         sx={{
           padding: { xs: "24px", md: "32px" },
           marginBottom: "24px",
-          boxShadow: "0px 4px 12px rgba(45, 41, 38, 0.08)",
+          boxShadow: "0px 4px 12px rgba(74, 74, 74, 0.08)",
           borderRadius: "12px",
         }}
       >
@@ -180,9 +180,9 @@ const Profile = () => {
                 mt: 1,
                 py: 1.5,
                 fontSize: "16px",
-                background: "linear-gradient(135deg, #2c5f4f 0%, #1a4435 100%)",
+                background: "linear-gradient(135deg, #197b9f 0%, #156988 100%)",
                 "&:hover": {
-                  background: "linear-gradient(135deg, #1a4435 0%, #2c5f4f 100%)",
+                  background: "linear-gradient(135deg, #156988 0%, #197b9f 100%)",
                 },
               }}
             >
@@ -196,7 +196,7 @@ const Profile = () => {
       <Card
         sx={{
           padding: { xs: "24px", md: "32px" },
-          boxShadow: "0px 4px 12px rgba(45, 41, 38, 0.08)",
+          boxShadow: "0px 4px 12px rgba(74, 74, 74, 0.08)",
           borderRadius: "12px",
         }}
       >
@@ -257,9 +257,9 @@ const Profile = () => {
                 mt: 1,
                 py: 1.5,
                 fontSize: "16px",
-                background: "linear-gradient(135deg, #614051 0%, #452d39 100%)",
+                background: "linear-gradient(135deg, #c73d67 0%, #a8325a 100%)",
                 "&:hover": {
-                  background: "linear-gradient(135deg, #452d39 0%, #614051 100%)",
+                  background: "linear-gradient(135deg, #a8325a 0%, #c73d67 100%)",
                 },
               }}
             >

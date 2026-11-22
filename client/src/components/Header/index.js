@@ -21,6 +21,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { logoutUser, fetchMe } from "store/sessionSlice";
 import LinkItem from "./LinkItem";
+import Bunting from "components/Bunting";
 import Tent from "components/icons/Tent";
 import { styles } from "./styles";
 
@@ -76,7 +77,7 @@ const Header = ({ socket }) => {
           justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
-          backgroundColor: "#1B7B9F",
+          backgroundColor: "#197b9f",
           borderRadius: "0px",
           height: "60px",
           zIndex: 1000,
@@ -120,7 +121,7 @@ const Header = ({ socket }) => {
                   height: "30px",
                   borderRadius: "50%",
                   backgroundColor: "#ffffff",
-                  color: "#1B7B9F",
+                  color: "#197b9f",
                   display: { xs: "none", md: "flex" },
                   justifyContent: "center",
                   alignItems: "center",
@@ -159,6 +160,9 @@ const Header = ({ socket }) => {
           )}
         </Box>
       </Card>
+      <Bunting
+        sx={{ position: "fixed", top: "60px", left: 0, zIndex: 999 }}
+      />
 
       {/* Mobile Drawer */}
       <Drawer
@@ -169,7 +173,7 @@ const Header = ({ socket }) => {
           display: { xs: "block", md: "none" },
           "& .MuiDrawer-paper": {
             width: 250,
-            backgroundColor: "#faf7f2",
+            backgroundColor: "#f4f2ed",
           },
         }}
       >
@@ -180,7 +184,7 @@ const Header = ({ socket }) => {
               px: 2,
               mb: 2,
               fontWeight: 600,
-              color: "#2c5f4f",
+              color: "#197b9f",
             }}
           >
             Navigation

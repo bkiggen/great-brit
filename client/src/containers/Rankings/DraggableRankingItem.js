@@ -59,7 +59,7 @@ const DraggableRankingItem = ({
         opacity: disabled ? 0.7 : isDragging ? 0.5 : 1,
         transform: isDragging ? "rotate(-2deg)" : "none",
         transition: "all 0.2s ease",
-        border: isOver ? "2px solid #2c5f4f" : "2px solid transparent",
+        border: isOver ? "2px solid #197b9f" : "2px solid transparent",
         boxShadow: isOver
           ? "0px 8px 24px rgba(44, 95, 79, 0.3)"
           : "0px 2px 8px rgba(0, 0, 0, 0.08)",
@@ -89,11 +89,11 @@ const DraggableRankingItem = ({
             }}
           >
             {disabled ? (
-              <LockIcon sx={{ color: "#6b6562", fontSize: 24 }} />
+              <LockIcon sx={{ color: "#77756f", fontSize: 24 }} />
             ) : (
               <DragIndicatorIcon
                 sx={{
-                  color: "#6b6562",
+                  color: "#77756f",
                   fontSize: 28,
                 }}
               />
@@ -112,7 +112,7 @@ const DraggableRankingItem = ({
               background: "rgba(44, 95, 79, 0.1)",
               fontWeight: 700,
               fontSize: { xs: "20px", sm: "24px" },
-              color: "#2c5f4f",
+              color: "#197b9f",
             }}
           >
             {rank}
@@ -126,7 +126,7 @@ const DraggableRankingItem = ({
               sx={{
                 fontWeight: 700,
                 fontSize: { xs: "18px", sm: "22px" },
-                color: "#2d2926",
+                color: "#4a4a4a",
               }}
             >
               {item.star?.firstName} {item.star?.lastName}

@@ -46,7 +46,7 @@ const Bets = () => {
             mb: 2,
           }}
         >
-          <LocalOffer sx={{ fontSize: 48, color: "#614051", mr: 2 }} />
+          <LocalOffer sx={{ fontSize: 48, color: "#c73d67", mr: 2 }} />
           <Typography
             variant="h3"
             sx={{
@@ -67,13 +67,13 @@ const Bets = () => {
           startIcon={<Add />}
           onClick={() => setShowNewBet(!showNewBet)}
           sx={{
-            background: "linear-gradient(135deg, #614051 0%, #452d39 100%)",
+            background: "linear-gradient(135deg, #c73d67 0%, #a8325a 100%)",
             color: "white",
             px: 4,
             py: 1.5,
             fontSize: "16px",
             "&:hover": {
-              background: "linear-gradient(135deg, #452d39 0%, #614051 100%)",
+              background: "linear-gradient(135deg, #a8325a 0%, #c73d67 100%)",
             },
           }}
         >
@@ -98,13 +98,12 @@ const Bets = () => {
             borderBottom: 1,
             borderColor: "divider",
             "& .MuiTab-root": {
-              textTransform: "none",
-              fontSize: "16px",
-              fontWeight: 600,
+              fontSize: { xs: "13px", md: "15px" },
+              fontWeight: 500,
               py: 2,
             },
             "& .MuiTabs-indicator": {
-              backgroundColor: "#2c5f4f",
+              backgroundColor: "#197b9f",
               height: 3,
             },
           }}
@@ -114,7 +113,7 @@ const Bets = () => {
             iconPosition="start"
             label="All Bets"
             sx={{
-              color: activeTab === 0 ? "#2c5f4f" : "text.secondary",
+              color: activeTab === 0 ? "#197b9f" : "text.secondary",
             }}
           />
           <Tab
@@ -122,7 +121,7 @@ const Bets = () => {
             iconPosition="start"
             label="My Bets"
             sx={{
-              color: activeTab === 1 ? "#2c5f4f" : "text.secondary",
+              color: activeTab === 1 ? "#197b9f" : "text.secondary",
             }}
           />
           <Tab
@@ -130,7 +129,7 @@ const Bets = () => {
             iconPosition="start"
             label="Available to Accept"
             sx={{
-              color: activeTab === 2 ? "#2c5f4f" : "text.secondary",
+              color: activeTab === 2 ? "#197b9f" : "text.secondary",
             }}
           />
         </Tabs>

@@ -23,7 +23,7 @@ const BetTerms = ({ maxLose, odds, oddsPair, accepterCount, betterName = "You" }
       sx={{
         p: 2,
         borderRadius: 2,
-        backgroundColor: "#f6f1ea",
+        backgroundColor: "#f4f2ed",
         display: "flex",
         flexDirection: "column",
         gap: 0.75,

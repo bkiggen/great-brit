@@ -135,7 +135,7 @@ const Rankings = () => {
           <Card
             sx={{
               mb: 4,
-              background: "linear-gradient(135deg, #2c5f4f 0%, #1a4435 100%)",
+              background: "linear-gradient(135deg, #197b9f 0%, #156988 100%)",
             }}
           >
             <CardContent>
