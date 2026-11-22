@@ -46,9 +46,39 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const logoutUser = createAsyncThunk("session/logoutUser", async () => {
-  await fetch("/api/logout");
-});
+const apiBaseUrl = () =>
+  process.env.NODE_ENV === "production"
+    ? window.location.origin
+    : process.env.REACT_APP_API_URL || "http://localhost:8000";
+
+export const logoutUser = createAsyncThunk(
+  "session/logoutUser",
+  async (_, { getState }) => {
+    const { sessionToken } = getState().session;
+    try {
+      await fetch(`${apiBaseUrl()}/api/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionToken }),
+      });
+    } catch (error) {
+      // Log out locally even if the server call fails
+    }
+  }
+);
+
+// Refresh the logged-in user (e.g. to pick up isAdmin)
+export const fetchMe = createAsyncThunk(
+  "session/fetchMe",
+  async (_, { getState, rejectWithValue }) => {
+    const { sessionToken } = getState().session;
+    const res = await fetch(`${apiBaseUrl()}/api/users/me`, {
+      headers: { Authorization: `Bearer ${sessionToken}` },
+    });
+    if (!res.ok) return rejectWithValue(res.status);
+    return (await res.json()).user;
+  }
+);
 
 export const sessionSlice = createSlice({
   name: "session",
@@ -78,6 +108,10 @@ export const sessionSlice = createSlice({
     builder.addCase(logoutUser.fulfilled, (state) => {
       state.user = null;
       state.sessionToken = null;
+      state.expiresAt = null;
+    });
+    builder.addCase(fetchMe.fulfilled, (state, action) => {
+      state.user = action.payload;
     });
   },
 });
@@ -86,6 +120,7 @@ export const { clearSession } = sessionSlice.actions;
 
 export const sessionSelector = (state) => state.session;
 export const selectUser = (state) => state.session.user;
+export const selectIsAdmin = (state) => Boolean(state.session.user?.isAdmin);
 export const selectIsAuthenticated = (state) => state.session.isAuthenticated;
 export const selectLoading = (state) => state.session.loading;
 export const selectError = (state) => state.session.error;

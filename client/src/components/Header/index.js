@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { sessionSelector } from "store";
 import { useSelector, useDispatch } from "react-redux";
@@ -19,7 +19,7 @@ import {
   Divider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { logoutUser } from "store/sessionSlice";
+import { logoutUser, fetchMe } from "store/sessionSlice";
 import LinkItem from "./LinkItem";
 import Tent from "components/icons/Tent";
 import { styles } from "./styles";
@@ -31,6 +31,12 @@ const Header = ({ socket }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const open = Boolean(anchorEl);
+  const isAdmin = Boolean(session.user?.isAdmin);
+
+  // Refresh user info (isAdmin) for sessions saved before it existed
+  useEffect(() => {
+    if (session.sessionToken) dispatch(fetchMe());
+  }, [session.sessionToken, dispatch]);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -85,7 +91,7 @@ const Header = ({ socket }) => {
             <LinkItem to="/rankings" label="Rankings" />
             <LinkItem to="/bets" label="Bets" />
             <LinkItem to="/episodes" label="Episodes" />
-            <LinkItem to="/admin" label="Admin" />
+            {isAdmin && <LinkItem to="/admin" label="Admin" />}
           </Box>
         )}
         <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -201,11 +207,13 @@ const Header = ({ socket }) => {
                 <ListItemText primary="Episodes" />
               </ListItemButton>
             </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => handleMobileNavigate("/admin")}>
-                <ListItemText primary="Admin" />
-              </ListItemButton>
-            </ListItem>
+            {isAdmin && (
+              <ListItem disablePadding>
+                <ListItemButton onClick={() => handleMobileNavigate("/admin")}>
+                  <ListItemText primary="Admin" />
+                </ListItemButton>
+              </ListItem>
+            )}
           </List>
         </Box>
       </Drawer>

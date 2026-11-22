@@ -1,31 +1,32 @@
 import { prisma } from "../../index.js";
-import { authenticateUser } from "./authMiddleware.js";
+import { authenticateUser, requireAdmin } from "./authMiddleware.js";
 import { getCurrentEpisode } from "../../helpers/season.js";
+import { validateBetTerms } from "../../helpers/bets.js";
+
+const betInclude = {
+  better: true,
+  eligibleUsers: true,
+  acceptedUsers: true,
+};
 
 const betRoutes = (router) => {
-  // GET all bets
+  // GET all bets for an episode (default: current episode)
   router.get("/bets", authenticateUser, async (req, res) => {
     try {
       const episodeParam = req.query.episodeId;
-      let episodeNumber;
+      let episodeId;
 
       if (episodeParam && episodeParam !== "undefined") {
-        episodeNumber = parseInt(episodeParam);
+        episodeId = parseInt(episodeParam);
       } else {
-        // Fetch the current episode instead of the latest
-        const currentEpisode = await getCurrentEpisode();
-        episodeNumber = currentEpisode?.id;
+        episodeId = (await getCurrentEpisode())?.id;
       }
 
-      if (!episodeNumber) return res.json({ bets: [] });
+      if (!episodeId) return res.json({ bets: [] });
 
       const bets = await prisma.bet.findMany({
-        where: { episode: episodeNumber },
-        include: {
-          better: true,
-          eligibleUsers: true,
-          acceptedUsers: true,
-        },
+        where: { episode: episodeId },
+        include: betInclude,
       });
 
       res.json({ bets });
@@ -35,33 +36,41 @@ const betRoutes = (router) => {
     }
   });
 
-  // Create a bet
+  // Create a bet for the current episode
   router.post("/bets", authenticateUser, async (req, res) => {
-    const { description, odds, maxLose, eligibleUsers } = req.body;
+    const { description, odds, maxLose, eligibleUsers = [] } = req.body;
 
     try {
-      // Create bet for the current episode
       const currentEpisode = await getCurrentEpisode();
       if (!currentEpisode) {
         return res.status(400).json({ message: "No current episode" });
       }
 
+      if (!description || !description.trim()) {
+        return res.status(400).json({ message: "Description required" });
+      }
+
+      const termsError = await validateBetTerms({
+        odds,
+        maxLose,
+        userId: req.sessionUser.id,
+      });
+      if (termsError) return res.status(400).json({ message: termsError });
+
       const newBet = await prisma.bet.create({
         data: {
-          description,
-          odds,
-          maxLose,
+          description: description.trim(),
+          odds: parseFloat(odds),
+          maxLose: parseFloat(maxLose),
           betterId: req.sessionUser.id,
           episode: currentEpisode.id,
           eligibleUsers: {
-            connect: eligibleUsers.filter(Boolean).map((userId) => ({ id: userId })),
+            connect: eligibleUsers
+              .filter((id) => id && id !== req.sessionUser.id)
+              .map((userId) => ({ id: userId })),
           },
         },
-        include: {
-          better: true,
-          eligibleUsers: true,
-          acceptedUsers: true,
-        },
+        include: betInclude,
       });
 
       res.status(201).json({ bet: newBet });
@@ -71,48 +80,50 @@ const betRoutes = (router) => {
     }
   });
 
-  // Accept a bet
+  // Accept a bet (only open bets in the current episode)
   router.post("/bets/:betId/accept", authenticateUser, async (req, res) => {
     const betId = parseInt(req.params.betId);
     const userId = req.sessionUser.id;
 
     try {
-      // Check if user is eligible for this bet
       const bet = await prisma.bet.findUnique({
         where: { id: betId },
-        include: {
-          eligibleUsers: true,
-          acceptedUsers: true,
-        },
+        include: { eligibleUsers: true, acceptedUsers: true },
       });
 
       if (!bet) {
         return res.status(404).json({ message: "Bet not found" });
       }
 
-      const isEligible = bet.eligibleUsers.some(user => user.id === userId);
+      if (bet.betterId === userId) {
+        return res.status(400).json({ message: "You cannot accept your own bet" });
+      }
+
+      if (bet.won !== null) {
+        return res.status(400).json({ message: "This bet is already settled" });
+      }
+
+      const currentEpisode = await getCurrentEpisode();
+      if (!currentEpisode || bet.episode !== currentEpisode.id) {
+        return res
+          .status(400)
+          .json({ message: "You can only accept bets for the current episode" });
+      }
+
+      const isEligible = bet.eligibleUsers.some((user) => user.id === userId);
       if (!isEligible) {
         return res.status(403).json({ message: "You are not eligible for this bet" });
       }
 
-      const alreadyAccepted = bet.acceptedUsers.some(user => user.id === userId);
+      const alreadyAccepted = bet.acceptedUsers.some((user) => user.id === userId);
       if (alreadyAccepted) {
         return res.status(400).json({ message: "You have already accepted this bet" });
       }
 
-      // Add user to acceptedUsers
       const updatedBet = await prisma.bet.update({
         where: { id: betId },
-        data: {
-          acceptedUsers: {
-            connect: { id: userId },
-          },
-        },
-        include: {
-          better: true,
-          eligibleUsers: true,
-          acceptedUsers: true,
-        },
+        data: { acceptedUsers: { connect: { id: userId } } },
+        include: betInclude,
       });
 
       res.json({ bet: updatedBet });
@@ -122,15 +133,15 @@ const betRoutes = (router) => {
     }
   });
 
-  // Edit bet details (only for bet owner)
+  // Edit bet details (owner only, before anyone accepts and before it is settled)
   router.patch("/bets/:betId", authenticateUser, async (req, res) => {
     const betId = parseInt(req.params.betId);
     const { description, odds, maxLose, eligibleUsers } = req.body;
 
     try {
-      // Check if bet exists and user is the owner
       const bet = await prisma.bet.findUnique({
         where: { id: betId },
+        include: { acceptedUsers: true },
       });
 
       if (!bet) {
@@ -141,28 +152,46 @@ const betRoutes = (router) => {
         return res.status(403).json({ message: "You can only edit your own bets" });
       }
 
-      // Prepare update data
+      if (bet.won !== null) {
+        return res.status(400).json({ message: "This bet is already settled" });
+      }
+
+      const termsChange = odds !== undefined || maxLose !== undefined;
+      if (termsChange && bet.acceptedUsers.length > 0) {
+        return res.status(400).json({
+          message: "You cannot change odds or amount after someone accepts the bet",
+        });
+      }
+
+      if (termsChange) {
+        const termsError = await validateBetTerms({
+          odds: odds ?? bet.odds,
+          maxLose: maxLose ?? bet.maxLose,
+          userId: req.sessionUser.id,
+        });
+        if (termsError) return res.status(400).json({ message: termsError });
+      }
+
       const updateData = {};
       if (description !== undefined) updateData.description = description;
       if (odds !== undefined) updateData.odds = parseFloat(odds);
       if (maxLose !== undefined) updateData.maxLose = parseFloat(maxLose);
 
-      // Handle eligible users update
       if (eligibleUsers !== undefined) {
-        // Disconnect all current eligible users and reconnect new ones
+        // Keep users who already accepted
+        const ids = new Set(
+          eligibleUsers.filter((id) => id && id !== bet.betterId)
+        );
+        bet.acceptedUsers.forEach((u) => ids.add(u.id));
         updateData.eligibleUsers = {
-          set: eligibleUsers.filter(Boolean).map((userId) => ({ id: userId })),
+          set: [...ids].map((userId) => ({ id: userId })),
         };
       }
 
       const updatedBet = await prisma.bet.update({
         where: { id: betId },
         data: updateData,
-        include: {
-          better: true,
-          eligibleUsers: true,
-          acceptedUsers: true,
-        },
+        include: betInclude,
       });
 
       res.json({ bet: updatedBet });
@@ -172,20 +201,16 @@ const betRoutes = (router) => {
     }
   });
 
-  // Update bet won/lost status (admin only)
-  router.put("/bets/:betId", authenticateUser, async (req, res) => {
+  // Set bet won/lost status (admin only)
+  router.put("/bets/:betId", authenticateUser, requireAdmin, async (req, res) => {
     const betId = parseInt(req.params.betId);
     const { won } = req.body;
 
     try {
       const updatedBet = await prisma.bet.update({
         where: { id: betId },
-        data: { won },
-        include: {
-          better: true,
-          eligibleUsers: true,
-          acceptedUsers: true,
-        },
+        data: { won: won === null ? null : Boolean(won) },
+        include: betInclude,
       });
 
       res.json({ bet: updatedBet });
@@ -198,19 +223,36 @@ const betRoutes = (router) => {
     }
   });
 
+  // Delete a bet: admin, or the owner before anyone accepts it
   router.delete("/bets/:betId", authenticateUser, async (req, res) => {
     const betId = parseInt(req.params.betId);
 
     try {
-      await prisma.bet.delete({
+      const bet = await prisma.bet.findUnique({
         where: { id: betId },
+        include: { acceptedUsers: true },
       });
+
+      if (!bet) {
+        return res.status(404).json({ message: "Bet not found" });
+      }
+
+      const isOwner = bet.betterId === req.sessionUser.id;
+      const ownerCanDelete =
+        isOwner && bet.acceptedUsers.length === 0 && bet.won === null;
+
+      if (!req.sessionUser.isAdmin && !ownerCanDelete) {
+        return res.status(403).json({
+          message: isOwner
+            ? "You cannot delete a bet after someone accepts it"
+            : "You can only delete your own bets",
+        });
+      }
+
+      await prisma.bet.delete({ where: { id: betId } });
 
       res.json({ message: "Bet deleted successfully" });
     } catch (error) {
-      if (error.code === "P2025") {
-        return res.status(404).json({ message: "Bet not found" });
-      }
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
     }

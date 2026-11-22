@@ -1,6 +1,6 @@
 import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
-import { getCurrentSeason } from "../../helpers/season.js";
+import { getCurrentSeason, getCurrentEpisode } from "../../helpers/season.js";
 
 const rankingsRoutes = (router) => {
   // GET ALL RANKINGS
@@ -66,6 +66,32 @@ const rankingsRoutes = (router) => {
 
       const userId = req.sessionUser.id;
 
+      // Only the current episode (or a later one) of the current season can change
+      const episode = await prisma.episode.findUnique({
+        where: { id: episodeNumber },
+      });
+      const currentEpisode = await getCurrentEpisode();
+      if (
+        !episode ||
+        !currentEpisode ||
+        episode.seasonId !== currentEpisode.seasonId ||
+        episode.number < currentEpisode.number
+      ) {
+        return res
+          .status(403)
+          .json({ message: "Rankings for this episode are locked" });
+      }
+
+      // Only bakers in this episode can be ranked
+      const episodeStarIds = new Set(
+        (
+          await prisma.episodeStar.findMany({
+            where: { episodeId: episodeNumber },
+            select: { starId: true },
+          })
+        ).map((es) => es.starId)
+      );
+
       // Remove existing rankings for the user in this episode
       await prisma.ranking.deleteMany({
         where: {
@@ -86,15 +112,17 @@ const rankingsRoutes = (router) => {
         };
       });
 
-      // Remove duplicates based on starId (keep first occurrence)
+      // Remove duplicates and bakers not in this episode, then renumber 1..n
       const seenStarIds = new Set();
-      const uniqueRankings = rankingsToCreate.filter((ranking) => {
-        if (seenStarIds.has(ranking.starId)) {
-          return false;
-        }
-        seenStarIds.add(ranking.starId);
-        return true;
-      });
+      const uniqueRankings = rankingsToCreate
+        .filter((ranking) => {
+          if (!episodeStarIds.has(ranking.starId)) return false;
+          if (seenStarIds.has(ranking.starId)) return false;
+          seenStarIds.add(ranking.starId);
+          return true;
+        })
+        .sort((a, b) => a.rank - b.rank)
+        .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
 
       await prisma.ranking.createMany({
         data: uniqueRankings,

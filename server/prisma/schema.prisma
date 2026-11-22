@@ -17,6 +17,7 @@ model User {
   lastName        String
   email           String      @unique
   password        String
+  isAdmin         Boolean     @default(false)
   resetToken      String?     @unique
   resetTokenExp   DateTime?
   createdAt       DateTime    @default(now())

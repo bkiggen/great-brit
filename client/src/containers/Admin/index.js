@@ -1,4 +1,7 @@
 import React from "react";
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
+import { selectIsAdmin } from "store/sessionSlice";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Tabs, Tab, Box, Typography, Card } from "@mui/material";
 import { AdminPanelSettings } from "@mui/icons-material";
@@ -10,6 +13,7 @@ import Seasons from "containers/Seasons";
 const AdminPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const isAdmin = useSelector(selectIsAdmin);
 
   const tabPaths = [
     {
@@ -27,6 +31,8 @@ const AdminPage = () => {
   const handleTabChange = (event, newValue) => {
     navigate(newValue);
   };
+
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
     <Box

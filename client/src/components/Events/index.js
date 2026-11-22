@@ -38,7 +38,7 @@ const AdminEvents = ({ episodeId }) => {
   const users = useSelector(usersSelector);
   const eventTypes = useSelector(eventTypesSelector);
 
-  const isAdminView = useLocation().pathname === "/admin";
+  const isAdminView = useLocation().pathname.startsWith("/admin");
 
   const [formData, setFormData] = useState({
     eventTypeId: "",

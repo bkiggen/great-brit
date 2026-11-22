@@ -2,7 +2,7 @@ import { prisma } from "../../index.js";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { authenticateUser } from "./authMiddleware.js";
+import { authenticateUser, requireAdmin } from "./authMiddleware.js";
 import { getCurrentSeason } from "../../helpers/season.js";
 import { sendPasswordResetEmail } from "../../helpers/emailService.js";
 
@@ -21,6 +21,12 @@ const userRoutes = (router) => {
     });
 
     res.json({ users });
+  });
+
+  // GET CURRENT USER
+  router.get("/users/me", authenticateUser, async (req, res) => {
+    const { id, firstName, lastName, email, isAdmin } = req.sessionUser;
+    res.json({ user: { id, firstName, lastName, email, isAdmin } });
   });
 
   // GET USERS LEADERBOARD
@@ -321,15 +327,17 @@ const userRoutes = (router) => {
         where: { email },
       });
 
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-
-      const passwordMatch = await bcrypt.compare(password, user.password);
+      const passwordMatch =
+        user && (await bcrypt.compare(password || "", user.password));
 
       if (!passwordMatch) {
-        return res.status(401).json({ message: "Invalid password" });
+        return res.status(401).json({ message: "Invalid email or password" });
       }
+
+      // Remove expired sessions
+      await prisma.session.deleteMany({
+        where: { expiresAt: { lt: new Date() } },
+      });
 
       const session = await prisma.session.create({
         data: {
@@ -346,6 +354,7 @@ const userRoutes = (router) => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
+          isAdmin: user.isAdmin,
         },
         sessionToken: session.token,
         expiresAt: session.expiresAt,
@@ -361,13 +370,11 @@ const userRoutes = (router) => {
     const { sessionToken } = req.body;
 
     try {
-      // Find and remove the session entry based on the provided token
-      const deletedSession = await prisma.session.delete({
-        where: { token: sessionToken },
-      });
-
-      if (!deletedSession) {
-        return res.status(404).json({ message: "Session not found" });
+      // Remove the session. Succeeds even if it is already gone.
+      const headerToken = req.headers.authorization?.split(" ")[1];
+      const token = sessionToken || headerToken;
+      if (token) {
+        await prisma.session.deleteMany({ where: { token } });
       }
 
       res.json({ message: "Logged out successfully" });
@@ -468,7 +475,7 @@ const userRoutes = (router) => {
   });
 
   // Backfill rankings for users who don't have any
-  router.post("/admin/backfill-rankings", authenticateUser, async (req, res) => {
+  router.post("/admin/backfill-rankings", authenticateUser, requireAdmin, async (req, res) => {
     try {
       const results = {
         usersProcessed: 0,

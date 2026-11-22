@@ -1,5 +1,5 @@
 import { prisma } from "../../index.js";
-import { authenticateUser } from "./authMiddleware.js";
+import { authenticateUser, requireAdmin } from "./authMiddleware.js";
 import { getCurrentSeason } from "../../helpers/season.js";
 
 const starRoutes = (router) => {
@@ -19,7 +19,7 @@ const starRoutes = (router) => {
     }
   });
 
-  router.post("/stars", authenticateUser, async (req, res) => {
+  router.post("/stars", authenticateUser, requireAdmin, async (req, res) => {
     const { firstName, lastName, bio, imageUrl } = req.body;
 
     try {
@@ -44,7 +44,7 @@ const starRoutes = (router) => {
     }
   });
 
-  router.put("/stars/:starId", authenticateUser, async (req, res) => {
+  router.put("/stars/:starId", authenticateUser, requireAdmin, async (req, res) => {
     const starId = parseInt(req.params.starId);
     const { active } = req.body;
 
