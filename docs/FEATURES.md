@@ -205,7 +205,7 @@ Episodes are the core organizational unit - each represents one show episode.
 
 | Field | Purpose |
 |-------|---------|
-| `number` | Episode number (1, 2, 3...) - also the primary key |
+| `number` | Episode number within its season (1, 2, 3...). PK is `id` |
 | `current` | Is this the active episode? (only one can be current) |
 | `hasAired` | Has this episode aired? |
 

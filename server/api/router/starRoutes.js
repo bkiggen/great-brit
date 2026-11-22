@@ -1,10 +1,17 @@
 import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
+import { getCurrentSeason } from "../../helpers/season.js";
 
 const starRoutes = (router) => {
   router.get("/stars", authenticateUser, async (req, res) => {
     try {
-      const stars = await prisma.star.findMany();
+      const seasonId = req.query.seasonId
+        ? parseInt(req.query.seasonId)
+        : (await getCurrentSeason())?.id;
+      const stars = await prisma.star.findMany({
+        where: { seasonId },
+        orderBy: { id: "asc" },
+      });
       res.json({ stars });
     } catch (error) {
       console.error(error);
@@ -16,11 +23,16 @@ const starRoutes = (router) => {
     const { firstName, lastName, bio } = req.body;
 
     try {
+      const season = await getCurrentSeason();
+      if (!season) {
+        return res.status(400).json({ message: "No current season" });
+      }
       const newStar = await prisma.star.create({
         data: {
           firstName,
-          lastName,
+          lastName: lastName || "",
           bio,
+          seasonId: season.id,
         },
       });
 

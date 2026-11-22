@@ -20,14 +20,14 @@ const SetCurrentEpisode = ({ episodes }) => {
     <Box>
       Current Episode:
       <Select
-        value={currentEpisode?.number || ""}
+        value={currentEpisode?.id || ""}
         onChange={(e) => {
           dispatch(setCurrentEpisode({ episodeId: e.target.value }));
         }}
         sx={{ marginLeft: "12px", minWidth: "100px" }}
       >
         {episodes.map((episode) => (
-          <MenuItem key={episode.number} value={episode.number}>
+          <MenuItem key={episode.id} value={episode.id}>
             {episode.number}
           </MenuItem>
         ))}

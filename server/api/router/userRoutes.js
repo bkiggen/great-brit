@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import { authenticateUser } from "./authMiddleware.js";
+import { getCurrentSeason } from "../../helpers/season.js";
 import { sendPasswordResetEmail } from "../../helpers/emailService.js";
 
 const userRoutes = (router) => {
@@ -25,12 +26,14 @@ const userRoutes = (router) => {
   // GET USERS LEADERBOARD
   router.get("/users/leaderboard", authenticateUser, async (req, res) => {
     try {
+      const season = await getCurrentSeason();
       const users = await prisma.user.findMany({
         select: {
           id: true,
           firstName: true,
           lastName: true,
           userDeltas: {
+            where: { episode: { seasonId: season?.id } },
             select: {
               delta: true,
             },
@@ -73,10 +76,14 @@ const userRoutes = (router) => {
         .json({ message: "Forbidden: Cannot access other users' data" });
     }
 
+    const season = await getCurrentSeason();
     const userBalanceHistory = await prisma.userDelta.findMany({
-      where: { userId: id || req.sessionUser.id },
+      where: {
+        userId: id || req.sessionUser.id,
+        episode: { seasonId: season?.id },
+      },
       include: { episode: true },
-      orderBy: { episodeId: "asc" },
+      orderBy: { episode: { number: "asc" } },
     });
 
     res.json({ userBalanceHistory });
@@ -85,14 +92,16 @@ const userRoutes = (router) => {
   // GET ALL USERS BALANCE HISTORY
   router.get("/users/allBalanceHistory", authenticateUser, async (req, res) => {
     try {
+      const season = await getCurrentSeason();
       const users = await prisma.user.findMany({
         select: {
           id: true,
           firstName: true,
           lastName: true,
           userDeltas: {
+            where: { episode: { seasonId: season?.id } },
             include: { episode: true },
-            orderBy: { episodeId: "asc" },
+            orderBy: { episode: { number: "asc" } },
           },
         },
       });
@@ -137,14 +146,16 @@ const userRoutes = (router) => {
       });
 
       // Create default rankings for all episodes
+      const season = await getCurrentSeason();
       const episodes = await prisma.episode.findMany({
+        where: { seasonId: season?.id },
         orderBy: { number: "asc" },
       });
 
       for (const episode of episodes) {
         // Get stars assigned to this episode
         const episodeStars = await prisma.episodeStar.findMany({
-          where: { episodeId: episode.number },
+          where: { episodeId: episode.id },
           select: { starId: true },
         });
 
@@ -154,7 +165,7 @@ const userRoutes = (router) => {
             userId: user.id,
             starId: es.starId,
             rank: index + 1,
-            episode: episode.number,
+            episode: episode.id,
           }));
 
           await prisma.ranking.createMany({
@@ -473,7 +484,9 @@ const userRoutes = (router) => {
       results.usersProcessed = users.length;
 
       // Get all episodes
+      const season = await getCurrentSeason();
       const episodes = await prisma.episode.findMany({
+        where: { seasonId: season?.id },
         orderBy: { number: "asc" },
       });
 
@@ -488,7 +501,7 @@ const userRoutes = (router) => {
           const existingRankings = await prisma.ranking.findMany({
             where: {
               userId: user.id,
-              episode: episode.number,
+              episode: episode.id,
             },
           });
 
@@ -502,7 +515,7 @@ const userRoutes = (router) => {
 
           // Get stars assigned to this episode
           const episodeStars = await prisma.episodeStar.findMany({
-            where: { episodeId: episode.number },
+            where: { episodeId: episode.id },
             select: { starId: true },
             orderBy: { starId: "asc" },
           });
@@ -520,7 +533,7 @@ const userRoutes = (router) => {
             userId: user.id,
             starId: es.starId,
             rank: index + 1,
-            episode: episode.number,
+            episode: episode.id,
           }));
 
           await prisma.ranking.createMany({

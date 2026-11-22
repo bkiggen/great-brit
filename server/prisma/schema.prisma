@@ -56,30 +56,52 @@ model Star {
   lastName  String
   bio       String?   @db.Text
   active    Boolean   @default(true)
+  seasonId  Int
   createdAt DateTime  @default(now())
 
   // Relations
+  season        Season    @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   rankings      Ranking[]
   events        Event[]
   episodeStars  EpisodeStar[]
 
+  @@index([seasonId])
   @@map("stars")
 }
 
-// Episode model - Game episodes/rounds
+// Season model - One series of the show. Episodes and stars belong to a season.
+model Season {
+  id        Int       @id @default(autoincrement())
+  number    Int       @unique
+  year      Int?
+  current   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  // Relations
+  episodes Episode[]
+  stars    Star[]
+
+  @@map("seasons")
+}
+
+// Episode model - Game episodes/rounds. `number` is the episode number within its season.
 model Episode {
-  number     Int       @id
+  id         Int       @id @default(autoincrement())
+  number     Int
+  seasonId   Int
   hasAired   Boolean   @default(false)
   current    Boolean   @default(false)
   createdAt  DateTime  @default(now())
 
   // Relations
+  season       Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   events       Event[]
   rankings     Ranking[]
   bets         Bet[]
   userDeltas   UserDelta[]
   episodeStars EpisodeStar[]
 
+  @@unique([seasonId, number])
   @@map("episodes")
 }
 
@@ -108,7 +130,7 @@ model Event {
   // Relations
   eventType EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   star      Star?     @relation(fields: [starId], references: [id], onDelete: SetNull)
-  episode   Episode?  @relation(fields: [episodeId], references: [number], onDelete: SetNull)
+  episode   Episode?  @relation(fields: [episodeId], references: [id], onDelete: SetNull)
 
   @@index([episodeId])
   @@index([starId])
@@ -128,7 +150,7 @@ model Ranking {
   // Relations
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   star        Star    @relation(fields: [starId], references: [id], onDelete: Cascade)
-  episodeRef  Episode @relation(fields: [episode], references: [number], onDelete: Cascade)
+  episodeRef  Episode @relation(fields: [episode], references: [id], onDelete: Cascade)
 
   @@unique([userId, starId, episode])
   @@index([userId, episode])
@@ -149,7 +171,7 @@ model Bet {
 
   // Relations
   better          User    @relation("BetCreator", fields: [betterId], references: [id], onDelete: Cascade)
-  episodeRef      Episode @relation(fields: [episode], references: [number], onDelete: Cascade)
+  episodeRef      Episode @relation(fields: [episode], references: [id], onDelete: Cascade)
   eligibleUsers   User[]  @relation("EligibleUsers")
   acceptedUsers   User[]  @relation("AcceptedUsers")
 
@@ -168,7 +190,7 @@ model UserDelta {
 
   // Relations
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  episode Episode @relation(fields: [episodeId], references: [number], onDelete: Cascade)
+  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, episodeId])
   @@index([userId])
@@ -195,7 +217,7 @@ model EpisodeStar {
   createdAt DateTime @default(now())
 
   // Relations
-  episode Episode @relation(fields: [episodeId], references: [number], onDelete: Cascade)
+  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
   star    Star    @relation(fields: [starId], references: [id], onDelete: Cascade)
 
   @@unique([episodeId, starId])

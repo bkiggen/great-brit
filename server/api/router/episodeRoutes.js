@@ -1,12 +1,18 @@
 import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
 import { splitArraysByLength } from "../../helpers/splits.js";
+import { getCurrentSeason, getCurrentEpisode } from "../../helpers/season.js";
 
 const episodeRoutes = (router) => {
-  // Get all episodes
+  // Get all episodes for a season (default: current season)
   router.get("/episodes", authenticateUser, async (req, res) => {
     try {
+      const seasonId = req.query.seasonId
+        ? parseInt(req.query.seasonId)
+        : (await getCurrentSeason())?.id;
+      if (!seasonId) return res.json({ episodes: [] });
       const episodes = await prisma.episode.findMany({
+        where: { seasonId },
         orderBy: { number: "asc" },
       });
       res.json({ episodes });
@@ -21,39 +27,41 @@ const episodeRoutes = (router) => {
     const { number, hasAired } = req.body;
 
     try {
+      const season = await getCurrentSeason();
+      if (!season) {
+        return res.status(400).json({ message: "No current season" });
+      }
+
       const newEpisode = await prisma.episode.create({
-        data: { number, hasAired },
+        data: { number, hasAired, seasonId: season.id },
       });
 
-      // Delete rankings for episode 3 (legacy cleanup)
-      await prisma.ranking.deleteMany({ where: { episode: 3 } });
-
       // Determine which stars to include in this episode
-      let starsForEpisode;
-      if (number === 1) {
-        // For episode 1, include all active stars
-        starsForEpisode = await prisma.star.findMany({
-          where: { active: true },
-        });
-      } else {
+      let starsForEpisode = [];
+      if (number > 1) {
         // For subsequent episodes, copy stars from previous episode
-        const previousEpisodeStars = await prisma.episodeStar.findMany({
-          where: { episodeId: number - 1 },
-          include: { star: true },
+        const previousEpisode = await prisma.episode.findUnique({
+          where: { seasonId_number: { seasonId: season.id, number: number - 1 } },
         });
-        starsForEpisode = previousEpisodeStars.map((es) => es.star);
-
-        // If no previous episode stars found, fall back to all active stars
-        if (starsForEpisode.length === 0) {
-          starsForEpisode = await prisma.star.findMany({
-            where: { active: true },
+        if (previousEpisode) {
+          const previousEpisodeStars = await prisma.episodeStar.findMany({
+            where: { episodeId: previousEpisode.id },
+            include: { star: true },
           });
+          starsForEpisode = previousEpisodeStars.map((es) => es.star);
         }
+      }
+      // Episode 1, or no previous episode stars: use all active season stars
+      if (starsForEpisode.length === 0) {
+        starsForEpisode = await prisma.star.findMany({
+          where: { active: true, seasonId: season.id },
+          orderBy: { id: "asc" },
+        });
       }
 
       // Create episode-star relationships
       const episodeStarsData = starsForEpisode.map((star) => ({
-        episodeId: newEpisode.number,
+        episodeId: newEpisode.id,
         starId: star.id,
       }));
       await prisma.episodeStar.createMany({ data: episodeStarsData });
@@ -68,7 +76,7 @@ const episodeRoutes = (router) => {
             userId: user.id,
             starId: starsForEpisode[index].id,
             rank: index + 1,
-            episode: newEpisode.number,
+            episode: newEpisode.id,
           });
         }
       }
@@ -88,11 +96,11 @@ const episodeRoutes = (router) => {
     authenticateUser,
     async (req, res) => {
       const { episodeId } = req.params;
-      const episodeNumber = parseInt(episodeId);
+      const episodeKey = parseInt(episodeId);
 
       try {
         const events = await prisma.event.findMany({
-          where: { episodeId: episodeNumber },
+          where: { episodeId: episodeKey },
           include: {
             star: true,
             eventType: true,
@@ -113,13 +121,13 @@ const episodeRoutes = (router) => {
     authenticateUser,
     async (req, res) => {
       const { episodeId } = req.params;
-      const episodeNumber = parseInt(episodeId);
+      const episodeKey = parseInt(episodeId);
       const { eventTypeId, time, starId } = req.body;
 
       try {
         // Check if the episode exists
         const episode = await prisma.episode.findUnique({
-          where: { number: episodeNumber },
+          where: { id: episodeKey },
         });
 
         if (!episode) {
@@ -146,7 +154,7 @@ const episodeRoutes = (router) => {
             eventTypeId: parsedEventTypeId,
             time,
             starId: starId ? parseInt(starId) : null,
-            episodeId: episodeNumber,
+            episodeId: episodeKey,
           },
           include: {
             star: true,
@@ -165,9 +173,7 @@ const episodeRoutes = (router) => {
   // GET current episode
   router.get("/episodes/current", authenticateUser, async (req, res) => {
     try {
-      const episode = await prisma.episode.findFirst({
-        where: { current: true },
-      });
+      const episode = await getCurrentEpisode();
       res.json({ episode });
     } catch (error) {
       console.error(error);
@@ -178,11 +184,11 @@ const episodeRoutes = (router) => {
   // Assign current episode
   router.post("/episodes/current", authenticateUser, async (req, res) => {
     const { episodeId } = req.body;
-    const episodeNumber = parseInt(episodeId);
+    const episodeKey = parseInt(episodeId);
 
     try {
       const episode = await prisma.episode.findUnique({
-        where: { number: episodeNumber },
+        where: { id: episodeKey },
       });
 
       if (!episode) {
@@ -191,13 +197,13 @@ const episodeRoutes = (router) => {
 
       // Set all episodes to not current
       await prisma.episode.updateMany({
-        where: { number: { not: episodeNumber } },
+        where: { id: { not: episodeKey } },
         data: { current: false },
       });
 
       // Set this episode to current
       const updatedEpisode = await prisma.episode.update({
-        where: { number: episodeNumber },
+        where: { id: episodeKey },
         data: { current: true },
       });
 
@@ -214,11 +220,11 @@ const episodeRoutes = (router) => {
     authenticateUser,
     async (req, res) => {
       const { episodeId } = req.params;
-      const episodeNumber = parseInt(episodeId);
+      const episodeKey = parseInt(episodeId);
 
       try {
         const episodeStars = await prisma.episodeStar.findMany({
-          where: { episodeId: episodeNumber },
+          where: { episodeId: episodeKey },
           include: { star: true },
         });
 
@@ -237,18 +243,18 @@ const episodeRoutes = (router) => {
     authenticateUser,
     async (req, res) => {
       const { episodeId } = req.params;
-      const episodeNumber = parseInt(episodeId);
+      const episodeKey = parseInt(episodeId);
       const { starIds } = req.body; // Array of star IDs
 
       try {
         // Delete all existing episode-star relationships for this episode
         await prisma.episodeStar.deleteMany({
-          where: { episodeId: episodeNumber },
+          where: { episodeId: episodeKey },
         });
 
         // Create new episode-star relationships
         const episodeStarsData = starIds.map((starId) => ({
-          episodeId: episodeNumber,
+          episodeId: episodeKey,
           starId: parseInt(starId),
         }));
 
@@ -258,7 +264,7 @@ const episodeRoutes = (router) => {
 
         // Fetch and return the updated stars
         const episodeStars = await prisma.episodeStar.findMany({
-          where: { episodeId: episodeNumber },
+          where: { episodeId: episodeKey },
           include: { star: true },
         });
 
@@ -277,10 +283,10 @@ const episodeRoutes = (router) => {
     async (req, res) => {
       const { episodeId } = req.params;
       const { force } = req.body; // Allow forcing calculation even if users haven't ranked
-      const episodeNumber = parseInt(episodeId);
+      const episodeKey = parseInt(episodeId);
 
       const episode = await prisma.episode.findUnique({
-        where: { number: episodeNumber },
+        where: { id: episodeKey },
       });
 
       if (!episode) {
@@ -303,7 +309,7 @@ const episodeRoutes = (router) => {
           const userRankings = await prisma.ranking.findMany({
             where: {
               userId: user.id,
-              episode: episodeNumber,
+              episode: episodeKey,
             },
           });
 
@@ -324,7 +330,7 @@ const episodeRoutes = (router) => {
         }
       }
       const eventsForEpisode = await prisma.event.findMany({
-        where: { episodeId: episodeNumber },
+        where: { episodeId: episodeKey },
         include: {
           star: true,
           eventType: true,
@@ -338,7 +344,7 @@ const episodeRoutes = (router) => {
         const rankings = await prisma.ranking.findMany({
           where: {
             userId: user.id,
-            episode: episode.number,
+            episode: episode.id,
           },
           include: { star: true },
         });
@@ -349,7 +355,7 @@ const episodeRoutes = (router) => {
               { betterId: user.id },
               { acceptedUsers: { some: { id: user.id } } },
             ],
-            episode: episode.number,
+            episode: episode.id,
           },
           include: {
             better: true,
@@ -399,7 +405,7 @@ const episodeRoutes = (router) => {
           where: {
             userId_episodeId: {
               userId: user.id,
-              episodeId: episodeNumber,
+              episodeId: episodeKey,
             },
           },
           update: {
@@ -407,7 +413,7 @@ const episodeRoutes = (router) => {
           },
           create: {
             userId: user.id,
-            episodeId: episodeNumber,
+            episodeId: episodeKey,
             delta: totalDelta,
           },
         });
@@ -427,11 +433,11 @@ const episodeRoutes = (router) => {
     authenticateUser,
     async (req, res) => {
       const { episodeId } = req.params;
-      const episodeNumber = parseInt(episodeId);
+      const episodeKey = parseInt(episodeId);
 
       try {
         const episode = await prisma.episode.findUnique({
-          where: { number: episodeNumber },
+          where: { id: episodeKey },
         });
 
         if (!episode) {
@@ -440,7 +446,7 @@ const episodeRoutes = (router) => {
 
         // Delete all user deltas for this episode
         await prisma.userDelta.deleteMany({
-          where: { episodeId: episodeNumber },
+          where: { episodeId: episodeKey },
         });
 
         res.json({ message: "Deltas cleared successfully" });

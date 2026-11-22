@@ -5,6 +5,7 @@ import { AdminPanelSettings } from "@mui/icons-material";
 
 import Stars from "containers/Stars";
 import Episodes from "containers/Episodes";
+import Seasons from "containers/Seasons";
 
 const AdminPage = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const AdminPage = () => {
       label: "Episodes",
     },
     { path: "/admin/stars", component: <Stars />, label: "Bakers" },
+    { path: "/admin/seasons", component: <Seasons />, label: "Seasons" },
   ];
 
   const selectedTab =
@@ -58,7 +60,7 @@ const AdminPage = () => {
           </Typography>
         </Box>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Manage episodes, bakers, and oversee the competition
+          Manage seasons, episodes, bakers, and oversee the competition
         </Typography>
       </Box>
 

@@ -10,6 +10,7 @@ import starsSlice from "./starsSlice";
 import thunk from "redux-thunk";
 import rankingsSlice from "./rankingsSlice";
 import episodesSlice from "./episodesSlice";
+import seasonsSlice from "./seasonsSlice";
 
 export const sessionSelector = (state) => state.session;
 
@@ -30,6 +31,7 @@ const persistedReducer = persistReducer(
     stars: starsSlice,
     rankings: rankingsSlice,
     episodes: episodesSlice,
+    seasons: seasonsSlice,
   })
 );
 

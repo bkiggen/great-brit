@@ -1,5 +1,6 @@
 import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
+import { getCurrentSeason } from "../../helpers/season.js";
 
 const rankingsRoutes = (router) => {
   // GET ALL RANKINGS
@@ -58,9 +59,10 @@ const rankingsRoutes = (router) => {
         ? parseInt(episodeId)
         : (
             await prisma.episode.findFirst({
+              where: { seasonId: (await getCurrentSeason())?.id },
               orderBy: { number: "desc" },
             })
-          ).number;
+          ).id;
 
       const userId = req.sessionUser.id;
 
