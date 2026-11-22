@@ -48,6 +48,14 @@ export const acceptBet = createAsyncThunk("bets/acceptBet", async (betId) => {
   return data.bet;
 });
 
+export const unacceptBet = createAsyncThunk(
+  "bets/unacceptBet",
+  async (betId) => {
+    const data = await makeRequest.post(`/bets/${betId}/unaccept`);
+    return data.bet;
+  }
+);
+
 export const betsSlice = createSlice({
   name: "bets",
   initialState,
@@ -77,6 +85,12 @@ export const betsSlice = createSlice({
       }
     });
     builder.addCase(acceptBet.fulfilled, (state, action) => {
+      const index = state.list.findIndex((bet) => bet.id === action.payload.id);
+      if (index !== -1) {
+        state.list[index] = action.payload;
+      }
+    });
+    builder.addCase(unacceptBet.fulfilled, (state, action) => {
       const index = state.list.findIndex((bet) => bet.id === action.payload.id);
       if (index !== -1) {
         state.list[index] = action.payload;

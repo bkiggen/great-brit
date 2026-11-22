@@ -133,6 +133,49 @@ const betRoutes = (router) => {
     }
   });
 
+  // Unaccept a bet (only open bets in the current episode)
+  router.post("/bets/:betId/unaccept", authenticateUser, async (req, res) => {
+    const betId = parseInt(req.params.betId);
+    const userId = req.sessionUser.id;
+
+    try {
+      const bet = await prisma.bet.findUnique({
+        where: { id: betId },
+        include: { acceptedUsers: true },
+      });
+
+      if (!bet) {
+        return res.status(404).json({ message: "Bet not found" });
+      }
+
+      if (!bet.acceptedUsers.some((user) => user.id === userId)) {
+        return res.status(400).json({ message: "You have not accepted this bet" });
+      }
+
+      if (bet.won !== null) {
+        return res.status(400).json({ message: "This bet is already settled" });
+      }
+
+      const currentEpisode = await getCurrentEpisode();
+      if (!currentEpisode || bet.episode !== currentEpisode.id) {
+        return res
+          .status(400)
+          .json({ message: "You can only unaccept bets for the current episode" });
+      }
+
+      const updatedBet = await prisma.bet.update({
+        where: { id: betId },
+        data: { acceptedUsers: { disconnect: { id: userId } } },
+        include: betInclude,
+      });
+
+      res.json({ bet: updatedBet });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Edit bet details (owner only, before anyone accepts and before it is settled)
   router.patch("/bets/:betId", authenticateUser, async (req, res) => {
     const betId = parseInt(req.params.betId);

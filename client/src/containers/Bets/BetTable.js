@@ -28,10 +28,13 @@ import {
   updateBet,
   deleteBet,
   acceptBet,
+  unacceptBet,
   editBet,
 } from "store/betsSlice";
 import { usersSelector } from "store/usersSlice";
 import { getLowestFraction } from "helpers/getLowestFraction";
+import { formatMoney, winPerAccepter } from "helpers/betMath";
+import BetTerms from "components/BetTerms";
 
 const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
   const dispatch = useDispatch();
@@ -151,6 +154,19 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
         </Button>
       );
     } else if (alreadyAccepted) {
+      if (params.row.won === null) {
+        return (
+          <Tooltip title="Accepted. Click to unaccept.">
+            <Button
+              variant="outlined"
+              onClick={() => dispatch(unacceptBet(params.row.id))}
+              sx={{ borderColor: "#614051", color: "#614051" }}
+            >
+              Unaccept
+            </Button>
+          </Tooltip>
+        );
+      }
       return (
         <Button
           variant="contained"
@@ -212,7 +228,7 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
     },
     {
       field: "odds",
-      headerName: "Odds",
+      headerName: "Odds (bet to win)",
       flex: 1,
       align: "center",
       headerAlign: "center",
@@ -224,13 +240,19 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
     },
     {
       field: "maxLose",
-      headerName: "Max Bet",
+      headerName: "Better risks / wins",
       minWidth: 100,
       align: "center",
       headerAlign: "center",
       flex: 1,
       renderCell: (params) => {
-        return <div>£{params.row.maxLose}</div>;
+        return (
+          <div>
+            {formatMoney(params.row.maxLose)} /{" "}
+            {formatMoney(winPerAccepter(params.row.maxLose, params.row.odds))}{" "}
+            each
+          </div>
+        );
       },
     },
     {
@@ -246,12 +268,10 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
         return (
           <Box sx={{ padding: "12px" }}>
             {acceptedUsers.map((user) => {
-              const acceptedAmount = (
-                parseFloat(params.row.maxLose) * parseFloat(params.row.odds)
-              ).toFixed(2);
+              const risk = winPerAccepter(params.row.maxLose, params.row.odds);
               return (
                 <div key={user.id}>
-                  {user.firstName} (£{acceptedAmount})
+                  {user.firstName} (risks {formatMoney(risk)})
                 </div>
               );
             })}
@@ -422,9 +442,23 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Max Bet:
+              Better risks / wins:
             </Typography>
-            <Typography variant="body2">£{bet.maxLose}</Typography>
+            <Typography variant="body2">
+              {formatMoney(bet.maxLose)} /{" "}
+              {formatMoney(winPerAccepter(bet.maxLose, bet.odds))} each
+            </Typography>
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <BetTerms
+              maxLose={bet.maxLose}
+              odds={bet.odds}
+              accepterCount={bet.acceptedUsers?.length || undefined}
+              betterName={
+                bet.better?.id === sessionUser?.id ? "You" : bet.better?.firstName
+              }
+            />
           </Box>
 
           {/* Accepted Users */}
@@ -438,12 +472,10 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
                 Accepted:
               </Typography>
               {bet.acceptedUsers.map((user) => {
-                const acceptedAmount = (
-                  parseFloat(bet.maxLose) * parseFloat(bet.odds)
-                ).toFixed(2);
+                const risk = winPerAccepter(bet.maxLose, bet.odds);
                 return (
                   <Typography key={user.id} variant="body2" sx={{ pl: 1 }}>
-                    {user.firstName} (£{acceptedAmount})
+                    {user.firstName} (risks {formatMoney(risk)})
                   </Typography>
                 );
               })}
@@ -507,6 +539,15 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
                       Edit Bet
                     </Button>
                   )
+                ) : alreadyAccepted && bet.won === null ? (
+                  <Button
+                    variant="outlined"
+                    onClick={() => dispatch(unacceptBet(bet.id))}
+                    fullWidth
+                    sx={{ borderColor: "#614051", color: "#614051" }}
+                  >
+                    Unaccept
+                  </Button>
                 ) : alreadyAccepted ? (
                   <Button
                     variant="contained"
@@ -655,7 +696,7 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <TextField
                 select
-                label="Odds"
+                label="Bet"
                 value={editFormData.selectedOdds[0]}
                 onChange={(e) =>
                   handleEditFormChange("selectedOdds", [
@@ -665,15 +706,13 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
                 }
                 sx={{ minWidth: "100px" }}
               >
-                {[
-                  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-                ].map((odds) => (
+                {Array.from({ length: 20 }, (_, i) => i + 1).map((odds) => (
                   <MenuItem key={odds} value={odds}>
                     {odds}
                   </MenuItem>
                 ))}
               </TextField>
-              <span>to</span>
+              <span>to win</span>
               <TextField
                 select
                 value={editFormData.selectedOdds[1]}
@@ -685,7 +724,7 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
                 }
                 sx={{ minWidth: "100px" }}
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((odds) => (
+                {Array.from({ length: 20 }, (_, i) => i + 1).map((odds) => (
                   <MenuItem key={odds} value={odds}>
                     {odds}
                   </MenuItem>
@@ -694,7 +733,7 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <TextField
-                label="Max Loss"
+                label="Stake per person"
                 type="number"
                 value={editFormData.maxLose}
                 onChange={(e) =>
@@ -708,7 +747,7 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
                 sx={{ flex: 1 }}
               />
               <TextField
-                label="Max Win"
+                label="Win per person"
                 type="number"
                 value={
                   editFormData.maxLose
@@ -728,6 +767,11 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
                 sx={{ flex: 1 }}
               />
             </Box>
+            <BetTerms
+              maxLose={editFormData.maxLose}
+              oddsPair={editFormData.selectedOdds}
+              accepterCount={editFormData.eligibleUsers.length || undefined}
+            />
             <FormControl fullWidth>
               <InputLabel>Eligible Users</InputLabel>
               <Select
