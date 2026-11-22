@@ -325,7 +325,7 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
       headerName: "Won",
       align: "center",
       headerAlign: "center",
-      minWidth: 100,
+      minWidth: 150,
       flex: 1,
       renderCell: (params) => {
         if (params.row.won === null) {
@@ -334,7 +334,8 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
           return (
             <Button
               variant="outlined"
-              sx={{ cursor: "pointer" }}
+              size="small"
+              sx={{ cursor: "pointer", whiteSpace: "nowrap", px: 1.5 }}
               onClick={() => {
                 dispatch(
                   updateBet({
@@ -352,8 +353,9 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
         return (
           <Button
             variant="contained"
+            size="small"
             color={params.row.won ? "success" : "error"}
-            sx={{ cursor: admin ? "pointer" : "default" }}
+            sx={{ cursor: admin ? "pointer" : "default", whiteSpace: "nowrap" }}
             onClick={() => {
               if (admin) {
                 dispatch(
