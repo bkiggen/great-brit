@@ -13,6 +13,7 @@ import {
   episodeStarsSelector,
 } from "store/episodesSlice";
 import { starsSelector } from "store/starsSlice";
+import BakerName from "components/BakerName";
 
 const ManageStars = ({ episodeId, episodeNumber }) => {
   const dispatch = useDispatch();
@@ -63,7 +64,7 @@ const ManageStars = ({ episodeId, episodeNumber }) => {
                 onChange={() => handleToggleStar(star.id)}
               />
             }
-            label={`${star.firstName} ${star.lastName}`}
+            label={<BakerName star={star} size={24} />}
           />
         ))}
       </FormGroup>

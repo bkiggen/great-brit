@@ -10,13 +10,20 @@ import {
   Divider,
 } from "@mui/material";
 import { fetchStars, updateStar, starsSelector } from "store/starsSlice";
+import BakerName from "components/BakerName";
 
 const StarsList = () => {
   const dispatch = useDispatch();
   const stars = useSelector(starsSelector);
 
   const columns = [
-    { field: "firstName", headerName: "First Name", minWidth: 100, flex: 1 },
+    {
+      field: "firstName",
+      headerName: "Baker",
+      minWidth: 140,
+      flex: 1,
+      renderCell: (params) => <BakerName star={params.row} variant="body2" />,
+    },
     {
       field: "active",
       headerName: "Active",
@@ -65,9 +72,13 @@ const StarsList = () => {
       <Card key={star.id} sx={{ mb: 2 }}>
         <CardContent>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 500 }}>
-              {star.firstName} {star.lastName}
-            </Typography>
+            <BakerName
+              star={star}
+              size={40}
+              gap={1.5}
+              variant="h6"
+              sx={{ fontWeight: 500 }}
+            />
           </Box>
 
           <Divider sx={{ mb: 2 }} />

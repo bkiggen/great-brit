@@ -41,6 +41,7 @@ const seasonRoutes = (router) => {
       .map((b) => ({
         firstName: (b.firstName || "").trim(),
         lastName: (b.lastName || "").trim(),
+        imageUrl: b.imageUrl || null,
       }))
       .filter((b) => b.firstName);
 

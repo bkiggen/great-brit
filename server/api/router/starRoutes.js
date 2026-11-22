@@ -20,7 +20,7 @@ const starRoutes = (router) => {
   });
 
   router.post("/stars", authenticateUser, async (req, res) => {
-    const { firstName, lastName, bio } = req.body;
+    const { firstName, lastName, bio, imageUrl } = req.body;
 
     try {
       const season = await getCurrentSeason();
@@ -32,6 +32,7 @@ const starRoutes = (router) => {
           firstName,
           lastName: lastName || "",
           bio,
+          imageUrl: imageUrl || null,
           seasonId: season.id,
         },
       });
