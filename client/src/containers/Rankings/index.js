@@ -35,12 +35,13 @@ const Rankings = () => {
 
   const [items, setItems] = useState([]);
   const [episodeId, setEpisodeId] = useState(null);
+  // Latest order, updated synchronously on every move so a save never
+  // sends a stale order (state/effects can lag behind fast drags)
   const itemsRef = useRef(items);
+  // Order at drag start, to skip saving when nothing changed
+  const dragStartOrderRef = useRef(null);
 
-  // Keep ref in sync with state
-  useEffect(() => {
-    itemsRef.current = items;
-  }, [items]);
+  const orderKey = (list) => list.map((i) => i.star?.id).join(",");
 
   useEffect(() => {
     dispatch(fetchEpisodes());
@@ -55,6 +56,7 @@ const Rankings = () => {
 
   useEffect(() => {
     if (rankings) {
+      itemsRef.current = rankings;
       setItems(rankings);
     }
   }, [rankings]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -65,22 +67,31 @@ const Rankings = () => {
     }
   }, [currentEpisode]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleDragStart = () => {
+    dragStartOrderRef.current = orderKey(itemsRef.current);
+  };
+
   const moveItem = (fromIndex, toIndex) => {
-    const newItems = [...items];
+    // Work from the ref, not the render-time `items`, so quick successive
+    // hovers build on each other instead of on an old order
+    const newItems = [...itemsRef.current];
     const [movedItem] = newItems.splice(fromIndex, 1);
     newItems.splice(toIndex, 0, movedItem);
 
-    // Update ranks by creating new objects
     const updatedItems = newItems.map((item, idx) => ({
       ...item,
       rank: idx + 1,
     }));
 
+    itemsRef.current = updatedItems;
     setItems(updatedItems);
   };
 
-  const handleDrop = () => {
-    // Save rankings when item is dropped - use ref to get latest state
+  // Called when a drag ends anywhere (on a card, in a gap, or outside)
+  const handleDragEnd = () => {
+    const changed = orderKey(itemsRef.current) !== dragStartOrderRef.current;
+    dragStartOrderRef.current = null;
+    if (!changed) return;
     dispatch(postRankings({ rankings: itemsRef.current, episodeId }));
   };
 
@@ -213,11 +224,12 @@ const Rankings = () => {
           {items.length > 0 ? (
             items.map((item, idx) => (
               <DraggableRankingItem
-                key={item.id}
+                key={item.star?.id ?? idx}
                 item={item}
                 index={idx}
                 moveItem={moveItem}
-                onDrop={handleDrop}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
                 disabled={isLocked}
               />
             ))
