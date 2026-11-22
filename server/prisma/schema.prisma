@@ -55,6 +55,7 @@ model Star {
   firstName String
   lastName  String
   bio       String?   @db.Text
+  imageUrl  String?
   active    Boolean   @default(true)
   seasonId  Int
   createdAt DateTime  @default(now())

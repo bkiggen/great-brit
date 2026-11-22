@@ -29,6 +29,7 @@ import {
 } from "store/usersSlice";
 
 import { styles } from "./styles";
+import BakerName from "components/BakerName";
 
 const AdminEvents = ({ episodeId }) => {
   const dispatch = useDispatch();
@@ -116,6 +117,9 @@ const AdminEvents = ({ episodeId }) => {
         if (!params.row.star) return "—";
         return `${params.row.star.firstName} ${params.row.star.lastName}`;
       },
+      renderCell: (params) => (
+        <BakerName star={params.row.star} variant="body2" />
+      ),
     },
   ];
 
@@ -157,11 +161,12 @@ const AdminEvents = ({ episodeId }) => {
             <Typography variant="body2" color="text.secondary">
               Baker:
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {event.star
-                ? `${event.star.firstName} ${event.star.lastName}`
-                : "—"}
-            </Typography>
+            <BakerName
+              star={event.star}
+              size={24}
+              variant="body2"
+              sx={{ fontWeight: 500 }}
+            />
           </Box>
         </CardContent>
       </Card>
@@ -219,7 +224,7 @@ const AdminEvents = ({ episodeId }) => {
                 <MenuItem value="">Select a baker</MenuItem>
                 {stars.map((star) => (
                   <MenuItem key={star.id} value={star.id}>
-                    {`${star.firstName} ${star.lastName}`}
+                    <BakerName star={star} size={24} />
                   </MenuItem>
                 ))}
               </Select>
@@ -306,10 +311,15 @@ const AdminEvents = ({ episodeId }) => {
             <AccordionDetails>
               {user.rankings?.map((ranking) => {
                 return (
-                  <div key={ranking.id}>
-                    {ranking.rank} - {ranking.star?.firstName}{" "}
-                    {ranking.star?.lastName}
-                  </div>
+                  <Box
+                    key={ranking.id}
+                    sx={{ display: "flex", alignItems: "center", gap: 1, py: 0.5 }}
+                  >
+                    <Box component="span" sx={{ minWidth: 20, textAlign: "right" }}>
+                      {ranking.rank}
+                    </Box>
+                    <BakerName star={ranking.star} size={24} variant="body2" />
+                  </Box>
                 );
               })}
             </AccordionDetails>

@@ -3,6 +3,7 @@ import { useDrag, useDrop } from "react-dnd";
 import { Box, Card, CardContent, Typography } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import LockIcon from "@mui/icons-material/Lock";
+import { BakerAvatar } from "components/BakerName";
 
 const ItemType = "RANKING_ITEM";
 
@@ -117,7 +118,8 @@ const DraggableRankingItem = ({
             {rank}
           </Box>
 
-          {/* Baker Name */}
+          {/* Baker Photo + Name */}
+          <BakerAvatar star={item.star} size={48} />
           <Box sx={{ flex: 1 }}>
             <Typography
               variant="h6"
