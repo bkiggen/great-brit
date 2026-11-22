@@ -140,6 +140,14 @@ const theme = createTheme({
             letterSpacing: "0.06em",
           },
           "& .MuiDataGrid-row:hover": { backgroundColor: colors.cream },
+          // Compact, single-line buttons inside table cells
+          "& .MuiDataGrid-cell .MuiButton-root": {
+            padding: "4px 14px",
+            fontSize: "0.75rem",
+            letterSpacing: "0.06em",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+          },
         },
       },
     },
