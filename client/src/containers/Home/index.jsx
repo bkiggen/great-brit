@@ -63,9 +63,9 @@ const Home = () => {
     dispatch(fetchLeaderboard());
     dispatch(fetchAllBalanceHistory());
     if (currentEpisode) {
-      dispatch(fetchBets({ episodeId: currentEpisode.number }));
+      dispatch(fetchBets({ episodeId: currentEpisode.id }));
     }
-  }, [currentEpisode?.number]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentEpisode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Initialize visible users - show only session user by default
   useEffect(() => {

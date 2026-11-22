@@ -1,5 +1,6 @@
 import { prisma } from "../../index.js";
 import { authenticateUser } from "./authMiddleware.js";
+import { getCurrentEpisode } from "../../helpers/season.js";
 
 const betRoutes = (router) => {
   // GET all bets
@@ -12,11 +13,11 @@ const betRoutes = (router) => {
         episodeNumber = parseInt(episodeParam);
       } else {
         // Fetch the current episode instead of the latest
-        const currentEpisode = await prisma.episode.findFirst({
-          where: { current: true },
-        });
-        episodeNumber = currentEpisode?.number;
+        const currentEpisode = await getCurrentEpisode();
+        episodeNumber = currentEpisode?.id;
       }
+
+      if (!episodeNumber) return res.json({ bets: [] });
 
       const bets = await prisma.bet.findMany({
         where: { episode: episodeNumber },
@@ -40,9 +41,10 @@ const betRoutes = (router) => {
 
     try {
       // Create bet for the current episode
-      const currentEpisode = await prisma.episode.findFirst({
-        where: { current: true },
-      });
+      const currentEpisode = await getCurrentEpisode();
+      if (!currentEpisode) {
+        return res.status(400).json({ message: "No current episode" });
+      }
 
       const newBet = await prisma.bet.create({
         data: {
@@ -50,7 +52,7 @@ const betRoutes = (router) => {
           odds,
           maxLose,
           betterId: req.sessionUser.id,
-          episode: currentEpisode.number,
+          episode: currentEpisode.id,
           eligibleUsers: {
             connect: eligibleUsers.filter(Boolean).map((userId) => ({ id: userId })),
           },

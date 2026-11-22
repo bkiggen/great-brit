@@ -16,15 +16,17 @@ A living document of design decisions, quirks, and things to remember when worki
 - `server/.env` should have `FRONTEND_URL=http://localhost:3002`
 - Client proxy (if used) must target port 8000
 
-### Episode Primary Key
-**Decision**: Episode uses `number` as primary key, not an auto-increment `id`.
+### Seasons and Episode Primary Key
+**Decision**: Episodes and stars belong to a `Season`. Episode uses an auto-increment `id` as primary key; `number` is the episode number within its season (`@@unique([seasonId, number])`).
 
-**Why**: Episode numbers are meaningful business identifiers (Episode 1, Episode 2, etc.) and are never changed.
+**Why**: Each season restarts at Episode 1, so `number` can no longer be unique. (Before Nov 2026, `number` was the PK. The `add_seasons` migration set `id = number` for old rows and put them in Season 16.)
 
 **Impact**:
-- Foreign keys reference `episode` (the number), not `episodeId`
-- When creating relationships, use the episode number directly
-- Example: `{ episode: 5 }` not `{ episodeId: 5 }`
+- Foreign keys (`Ranking.episode`, `Bet.episode`, `Event.episodeId`, `UserDelta.episodeId`, `EpisodeStar.episodeId`) hold the episode **id**, not the number
+- API routes take the episode id (`/episodes/:episodeId/...`); the UI shows `episode.number`
+- Scoring splits (`helpers/splits.js`) are keyed by `episode.number`
+- Episodes, stars, bets, leaderboard and balance history are scoped to the current season (`helpers/season.js`)
+- Start a new season in Admin → Seasons (`POST /api/seasons`). Old seasons stay in the DB
 
 ---
 

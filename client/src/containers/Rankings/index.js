@@ -61,7 +61,7 @@ const Rankings = () => {
 
   useEffect(() => {
     if (currentEpisode) {
-      setEpisodeId(currentEpisode.number);
+      setEpisodeId(currentEpisode.id);
     }
   }, [currentEpisode]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -85,7 +85,11 @@ const Rankings = () => {
   };
 
   // Check if the selected episode is before the current episode
-  const isLocked = currentEpisode && episodeId < currentEpisode.number;
+  const selectedEpisode = episodes.find((ep) => ep.id === episodeId);
+  const isLocked =
+    currentEpisode &&
+    selectedEpisode &&
+    selectedEpisode.number < currentEpisode.number;
 
   return items ? (
     <DndProvider backend={HTML5Backend}>
@@ -173,7 +177,7 @@ const Rankings = () => {
                     }}
                   >
                     {episodes.map((episode) => (
-                      <MenuItem key={episode.number} value={episode.number}>
+                      <MenuItem key={episode.id} value={episode.id}>
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >

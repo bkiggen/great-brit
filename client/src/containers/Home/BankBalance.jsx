@@ -22,7 +22,7 @@ const Home = () => {
   const episodesWithDeltas = useMemo(() => {
     return episodes.map((episode) => {
       const deltaData = balanceData.find(
-        (bd) => bd.episode.number === episode.number
+        (bd) => bd.episode.id === episode.id
       );
       return {
         episode,
@@ -40,7 +40,7 @@ const Home = () => {
       </div>
       {episodesWithDeltas.map((item, idx) => {
         return (
-          <div key={item.episode.number} className="bank-item">
+          <div key={item.episode.id} className="bank-item">
             <div className="episode">Episode: {item.episode.number}</div>
             {item.hasDelta ? (
               <Box

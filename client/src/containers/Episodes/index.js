@@ -57,7 +57,7 @@ const Episodes = ({ admin }) => {
 
   const handleCalculateDeltas = async (force = false) => {
     const result = await dispatch(
-      calculateDeltas({ episodeId: active?.number, force })
+      calculateDeltas({ episodeId: active?.id, force })
     );
 
     if (calculateDeltas.rejected.match(result)) {
@@ -86,7 +86,7 @@ const Episodes = ({ admin }) => {
   };
 
   const handleConfirmClearDeltas = () => {
-    dispatch(clearDeltas(active?.number));
+    dispatch(clearDeltas(active?.id));
     setClearDeltasDialogOpen(false);
   };
 
@@ -197,10 +197,10 @@ const Episodes = ({ admin }) => {
             </Typography>
             <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }}>
               <Select
-                value={active?.number || ""}
+                value={active?.id || ""}
                 onChange={(e) => {
                   const episode = episodes.find(
-                    (ep) => ep.number === e.target.value
+                    (ep) => ep.id === e.target.value
                   );
                   handleTabClick(episode);
                 }}
@@ -213,7 +213,7 @@ const Episodes = ({ admin }) => {
                 }}
               >
                 {episodes.map((episode) => (
-                  <MenuItem key={episode.number} value={episode.number}>
+                  <MenuItem key={episode.id} value={episode.id}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       Episode {episode.number}
                       {episode.current && (
@@ -292,10 +292,10 @@ const Episodes = ({ admin }) => {
           </Card>
 
           {/* Events Section */}
-          <Events episodeId={active.number} />
+          <Events episodeId={active.id} />
 
           {/* Manage Stars (Admin Only) */}
-          {admin && <ManageStars episodeId={active.number} />}
+          {admin && <ManageStars episodeId={active.id} episodeNumber={active.number} />}
 
           {/* Bets Section */}
           <Box sx={{ mt: 4 }}>
@@ -309,7 +309,7 @@ const Episodes = ({ admin }) => {
             >
               Bets
             </Typography>
-            <BetTable episodeId={active.number} readOnly admin={admin} />
+            <BetTable episodeId={active.id} readOnly admin={admin} />
           </Box>
         </Box>
       ) : (

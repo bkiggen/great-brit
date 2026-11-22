@@ -28,7 +28,7 @@ async function backfillRankings() {
         const existingRankings = await prisma.ranking.findMany({
           where: {
             userId: user.id,
-            episode: episode.number,
+            episode: episode.id,
           },
         });
 
@@ -39,7 +39,7 @@ async function backfillRankings() {
 
         // Get stars assigned to this episode
         const episodeStars = await prisma.episodeStar.findMany({
-          where: { episodeId: episode.number },
+          where: { episodeId: episode.id },
           select: { starId: true },
           orderBy: { starId: 'asc' },
         });
@@ -54,7 +54,7 @@ async function backfillRankings() {
           userId: user.id,
           starId: es.starId,
           rank: index + 1,
-          episode: episode.number,
+          episode: episode.id,
         }));
 
         await prisma.ranking.createMany({

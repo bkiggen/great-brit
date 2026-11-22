@@ -14,7 +14,7 @@ import {
 } from "store/episodesSlice";
 import { starsSelector } from "store/starsSlice";
 
-const ManageStars = ({ episodeId }) => {
+const ManageStars = ({ episodeId, episodeNumber }) => {
   const dispatch = useDispatch();
   const allStars = useSelector(starsSelector);
   const episodeStars = useSelector(episodeStarsSelector);
@@ -51,7 +51,7 @@ const ManageStars = ({ episodeId }) => {
   return (
     <Box sx={{ marginTop: "24px", marginBottom: "24px" }}>
       <Typography variant="h6" sx={{ marginBottom: "12px" }}>
-        Manage Stars for Episode {episodeId}
+        Manage Stars for Episode {episodeNumber}
       </Typography>
       <FormGroup>
         {allStars.map((star) => (
