@@ -94,8 +94,8 @@ const Home = () => {
   // Color palette for different users
   const userColors = useMemo(() => {
     const colors = [
-      "#2c5f4f", // Primary green
-      "#614051", // Secondary purple
+      "#197b9f", // Primary green
+      "#c73d67", // Secondary purple
       "#c23b22", // Red
       "#d4af37", // Gold
       "#4682b4", // Steel blue
@@ -202,7 +202,7 @@ const Home = () => {
         <Grid item xs={12} sm={6} md={4}>
           <Card
             sx={{
-              background: "linear-gradient(135deg, #2c5f4f 0%, #1a4435 100%)",
+              background: "linear-gradient(135deg, #197b9f 0%, #156988 100%)",
               color: "white",
               height: "100%",
             }}
@@ -235,7 +235,7 @@ const Home = () => {
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                <LocalOffer sx={{ mr: 1, color: "#614051" }} />
+                <LocalOffer sx={{ mr: 1, color: "#c73d67" }} />
                 <Typography variant="h6">Current Episode</Typography>
               </Box>
               {currentEpisode ? (
@@ -277,7 +277,7 @@ const Home = () => {
                 <Box sx={{ textAlign: "center" }}>
                   <Typography
                     variant="h4"
-                    sx={{ fontWeight: 700, color: "#2c5f4f" }}
+                    sx={{ fontWeight: 700, color: "#197b9f" }}
                   >
                     {myBets.length}
                   </Typography>
@@ -289,7 +289,7 @@ const Home = () => {
                 <Box sx={{ textAlign: "center" }}>
                   <Typography
                     variant="h4"
-                    sx={{ fontWeight: 700, color: "#614051" }}
+                    sx={{ fontWeight: 700, color: "#c73d67" }}
                   >
                     {eligibleBets.length}
                   </Typography>
@@ -321,8 +321,8 @@ const Home = () => {
                   sx={{
                     backgroundColor: visibleUsers[user.id]
                       ? userColors[user.id]
-                      : "#e8e3dc",
-                    color: visibleUsers[user.id] ? "white" : "#6b6562",
+                      : "#d3d2cb",
+                    color: visibleUsers[user.id] ? "white" : "#77756f",
                     fontWeight: visibleUsers[user.id] ? 600 : 400,
                     "&:hover": {
                       backgroundColor: visibleUsers[user.id]
@@ -338,9 +338,9 @@ const Home = () => {
           {chartData.length > 1 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e8e3dc" />
-                <XAxis dataKey="episode" stroke="#6b6562" />
-                <YAxis stroke="#6b6562" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#d3d2cb" />
+                <XAxis dataKey="episode" stroke="#77756f" />
+                <YAxis stroke="#77756f" />
                 <Tooltip
                   formatter={(value, name) => {
                     const user = allBalanceHistory.find((u) => u.id === name);
@@ -350,8 +350,8 @@ const Home = () => {
                     ];
                   }}
                   contentStyle={{
-                    backgroundColor: "#faf7f2",
-                    border: "1px solid #e8e3dc",
+                    backgroundColor: "#f4f2ed",
+                    border: "1px solid #d3d2cb",
                     borderRadius: "8px",
                   }}
                 />
@@ -409,10 +409,10 @@ const Home = () => {
                     border: "1px solid",
                     borderColor:
                       user.id === sessionUser?.id
-                        ? "#2c5f4f"
+                        ? "#197b9f"
                         : index === 0
                         ? "#ffd700"
-                        : "#e8e3dc",
+                        : "#d3d2cb",
                     boxShadow:
                       user.id === sessionUser?.id
                         ? "0 2px 4px rgba(44, 95, 79, 0.1)"
@@ -433,7 +433,7 @@ const Home = () => {
                             ? "#c0c0c0"
                             : index === 2
                             ? "#cd7f32"
-                            : "#6b6562",
+                            : "#77756f",
                         fontSize: index === 0 ? "24px" : "20px",
                       }}
                     >
@@ -468,10 +468,10 @@ const Home = () => {
                       fontWeight: 700,
                       color:
                         user.balance > 100
-                          ? "#2c5f4f"
+                          ? "#197b9f"
                           : user.balance < 100
                           ? "#c23b22"
-                          : "#6b6562",
+                          : "#77756f",
                     }}
                   >
                     £{user.balance.toFixed(2)}

@@ -54,7 +54,7 @@ const AdminPage = () => {
             mb: 2,
           }}
         >
-          <AdminPanelSettings sx={{ fontSize: 48, color: "#614051", mr: 2 }} />
+          <AdminPanelSettings sx={{ fontSize: 48, color: "#c73d67", mr: 2 }} />
           <Typography
             variant="h3"
             sx={{
@@ -81,15 +81,14 @@ const AdminPage = () => {
             borderColor: "divider",
             "& .MuiTab-root": {
               fontSize: { xs: "14px", md: "16px" },
-              fontWeight: 600,
+              fontWeight: 500,
               py: 2,
-              textTransform: "none",
               "&.Mui-selected": {
-                color: "#2c5f4f",
+                color: "#197b9f",
               },
             },
             "& .MuiTabs-indicator": {
-              backgroundColor: "#2c5f4f",
+              backgroundColor: "#197b9f",
               height: 3,
             },
           }}

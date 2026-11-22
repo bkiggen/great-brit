@@ -63,7 +63,7 @@ const ResetPassword = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #faf7f2 0%, #f5f1ea 100%)",
+        background: "linear-gradient(135deg, #f4f2ed 0%, #ebe8e0 100%)",
         padding: 2,
       }}
     >
@@ -72,12 +72,12 @@ const ResetPassword = () => {
           maxWidth: "500px",
           width: "100%",
           padding: { xs: "32px 24px", md: "48px 40px" },
-          boxShadow: "0px 8px 32px rgba(45, 41, 38, 0.12)",
+          boxShadow: "0px 8px 32px rgba(74, 74, 74, 0.12)",
         }}
       >
         {/* Header */}
         <Box sx={{ textAlign: "center", mb: 4 }}>
-          <Cake sx={{ fontSize: 64, color: "#2c5f4f", mb: 2 }} />
+          <Cake sx={{ fontSize: 64, color: "#197b9f", mb: 2 }} />
           <Typography
             variant="h3"
             sx={{
@@ -111,9 +111,9 @@ const ResetPassword = () => {
               to="/login"
               variant="contained"
               sx={{
-                background: "linear-gradient(135deg, #2c5f4f 0%, #1a4435 100%)",
+                background: "linear-gradient(135deg, #197b9f 0%, #156988 100%)",
                 "&:hover": {
-                  background: "linear-gradient(135deg, #1a4435 0%, #2c5f4f 100%)",
+                  background: "linear-gradient(135deg, #156988 0%, #197b9f 100%)",
                 },
               }}
             >
@@ -165,9 +165,9 @@ const ResetPassword = () => {
                   mt: 2,
                   py: 1.5,
                   fontSize: "16px",
-                  background: "linear-gradient(135deg, #2c5f4f 0%, #1a4435 100%)",
+                  background: "linear-gradient(135deg, #197b9f 0%, #156988 100%)",
                   "&:hover": {
-                    background: "linear-gradient(135deg, #1a4435 0%, #2c5f4f 100%)",
+                    background: "linear-gradient(135deg, #156988 0%, #197b9f 100%)",
                   },
                 }}
               >
@@ -184,7 +184,7 @@ const ResetPassword = () => {
               component={Link}
               to="/login"
               sx={{
-                color: "#2c5f4f",
+                color: "#197b9f",
                 textTransform: "none",
                 fontWeight: 600,
                 "&:hover": {

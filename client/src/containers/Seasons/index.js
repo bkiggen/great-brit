@@ -157,7 +157,7 @@ const Seasons = () => {
           variant="contained"
           disabled={loading || !number || bakers.length === 0}
           onClick={handleSubmit}
-          sx={{ backgroundColor: "#2c5f4f" }}
+          sx={{ backgroundColor: "#197b9f" }}
         >
           Start Season {number} ({bakers.length} bakers)
         </Button>

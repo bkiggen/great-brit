@@ -160,7 +160,7 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
             <Button
               variant="outlined"
               onClick={() => dispatch(unacceptBet(params.row.id))}
-              sx={{ borderColor: "#614051", color: "#614051" }}
+              sx={{ borderColor: "#c73d67", color: "#c73d67" }}
             >
               Unaccept
             </Button>
@@ -172,10 +172,10 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
           variant="contained"
           disabled
           sx={{
-            backgroundColor: "#614051",
+            backgroundColor: "#c73d67",
             color: "white",
             "&:disabled": {
-              backgroundColor: "#614051",
+              backgroundColor: "#c73d67",
               color: "white",
             },
           }}
@@ -228,7 +228,8 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
     },
     {
       field: "odds",
-      headerName: "Odds (bet to win)",
+      headerName: "Odds",
+      description: "Bet A to win B",
       flex: 1,
       align: "center",
       headerAlign: "center",
@@ -240,8 +241,9 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
     },
     {
       field: "maxLose",
-      headerName: "Better risks / wins",
-      minWidth: 100,
+      headerName: "Risk / Win",
+      description: "What the better risks and wins per person who accepts",
+      minWidth: 150,
       align: "center",
       headerAlign: "center",
       flex: 1,
@@ -544,7 +546,7 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
                     variant="outlined"
                     onClick={() => dispatch(unacceptBet(bet.id))}
                     fullWidth
-                    sx={{ borderColor: "#614051", color: "#614051" }}
+                    sx={{ borderColor: "#c73d67", color: "#c73d67" }}
                   >
                     Unaccept
                   </Button>
@@ -554,10 +556,10 @@ const Bets = ({ episodeId, readOnly = false, admin, filterType = "all" }) => {
                     disabled
                     fullWidth
                     sx={{
-                      backgroundColor: "#614051",
+                      backgroundColor: "#c73d67",
                       color: "white",
                       "&:disabled": {
-                        backgroundColor: "#614051",
+                        backgroundColor: "#c73d67",
                         color: "white",
                       },
                     }}

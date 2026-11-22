@@ -129,7 +129,7 @@ const Episodes = ({ admin }) => {
             mb: 2,
           }}
         >
-          <MovieFilter sx={{ fontSize: 48, color: "#c44536", mr: 2 }} />
+          <MovieFilter sx={{ fontSize: 48, color: "#c73d67", mr: 2 }} />
           <Typography
             variant="h3"
             sx={{
@@ -151,13 +151,13 @@ const Episodes = ({ admin }) => {
             startIcon={<Add />}
             onClick={() => setShowCreateEpisode(!showCreateEpisode)}
             sx={{
-              background: "linear-gradient(135deg, #c44536 0%, #a13627 100%)",
+              background: "linear-gradient(135deg, #c73d67 0%, #a8325a 100%)",
               color: "white",
               px: 4,
               py: 1.5,
               fontSize: "16px",
               "&:hover": {
-                background: "linear-gradient(135deg, #a13627 0%, #c44536 100%)",
+                background: "linear-gradient(135deg, #a8325a 0%, #c73d67 100%)",
               },
             }}
           >
@@ -179,7 +179,7 @@ const Episodes = ({ admin }) => {
       <Card
         sx={{
           mb: 4,
-          background: "linear-gradient(135deg, #2c5f4f 0%, #1a4435 100%)",
+          background: "linear-gradient(135deg, #197b9f 0%, #156988 100%)",
         }}
       >
         <Box sx={{ p: 3 }}>

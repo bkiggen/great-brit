@@ -13,7 +13,7 @@ export const BakerAvatar = ({ star, size = 32, sx }) => (
       width: size,
       height: size,
       fontSize: size * 0.45,
-      bgcolor: "#614051",
+      bgcolor: "#c73d67",
       "& img": { objectPosition: "center 15%" },
       ...sx,
     }}
