@@ -26,9 +26,10 @@ const Bets = () => {
   const [selectedOdds, setSelectedOdds] = useState([1, 1]);
   const [maxLose, setMaxLose] = useState("");
 
+  // Fractional odds a-b: a bet of maxLose wins maxLose * a / b per accepter
   const maxWin =
     parseFloat(maxLose) *
-    (parseFloat(selectedOdds[1]) / parseFloat(selectedOdds[0]));
+    (parseFloat(selectedOdds[0]) / parseFloat(selectedOdds[1]));
 
   const handleUserChange = (event) => {
     setSelectedUsers(event.target.value);

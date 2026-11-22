@@ -1,5 +1,5 @@
 import { prisma } from "../../index.js";
-import { authenticateUser } from "./authMiddleware.js";
+import { authenticateUser, requireAdmin } from "./authMiddleware.js";
 import { getCurrentSeason } from "../../helpers/season.js";
 
 const seasonRoutes = (router) => {
@@ -29,7 +29,7 @@ const seasonRoutes = (router) => {
 
   // Start a new season: creates the season, its bakers, and makes it current.
   // Body: { number, year, bakers: [{ firstName, lastName? }] }
-  router.post("/seasons", authenticateUser, async (req, res) => {
+  router.post("/seasons", authenticateUser, requireAdmin, async (req, res) => {
     const { number, year, bakers = [] } = req.body;
     const seasonNumber = parseInt(number);
 

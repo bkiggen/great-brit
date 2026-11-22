@@ -1,5 +1,5 @@
 import { prisma } from "../../index.js";
-import { authenticateUser } from "./authMiddleware.js";
+import { authenticateUser, requireAdmin } from "./authMiddleware.js";
 
 const eventRoutes = (router) => {
   // Get all event types
@@ -32,7 +32,7 @@ const eventRoutes = (router) => {
     }
   });
 
-  router.post("/events", authenticateUser, async (req, res) => {
+  router.post("/events", authenticateUser, requireAdmin, async (req, res) => {
     const { eventTypeId, time, starId, episodeId } = req.body;
 
     try {

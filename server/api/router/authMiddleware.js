@@ -24,3 +24,11 @@ export const authenticateUser = async (req, res, next) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Use after authenticateUser. Allows only users with isAdmin = true.
+export const requireAdmin = (req, res, next) => {
+  if (!req.sessionUser?.isAdmin) {
+    return res.status(403).json({ message: "Admin only" });
+  }
+  next();
+};

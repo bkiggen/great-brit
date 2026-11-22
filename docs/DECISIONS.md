@@ -166,3 +166,12 @@ When making significant architectural decisions, add them here with:
 1. **Decision**: What was decided
 2. **Why**: The reasoning
 3. **Impact**: What developers need to know
+
+### Admin Role
+**Decision**: `User.isAdmin` gates admin actions (seasons, episodes, events, stars, deltas, settling bets). Set it by hand in the DB. Middleware: `requireAdmin` in `authMiddleware.js`.
+
+### Bet Rules and Odds
+**Decision**: Odds are normal fractional odds (`odds = a/b` for "a-b"). A winning bet of `maxLose` pays `maxLose * odds` from each accepter; a losing bet costs `maxLose` per accepter. Logic in `server/helpers/bets.js`.
+- Odds: 1-10 to 10-1. Amount: > 0 and ≤ max(current balance, 10).
+- Owner can edit odds/amount or delete only before anyone accepts. Accept only open bets in the current episode, never your own.
+- Rankings are locked on the server for episodes before the current one.

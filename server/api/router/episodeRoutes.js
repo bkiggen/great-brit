@@ -1,7 +1,8 @@
 import { prisma } from "../../index.js";
-import { authenticateUser } from "./authMiddleware.js";
+import { authenticateUser, requireAdmin } from "./authMiddleware.js";
 import { getSplit } from "../../helpers/splits.js";
 import { getCurrentSeason, getCurrentEpisode } from "../../helpers/season.js";
+import { betDeltaForUser } from "../../helpers/bets.js";
 
 const episodeRoutes = (router) => {
   // Get all episodes for a season (default: current season)
@@ -23,7 +24,7 @@ const episodeRoutes = (router) => {
   });
 
   // Create a new episode
-  router.post("/episodes", authenticateUser, async (req, res) => {
+  router.post("/episodes", authenticateUser, requireAdmin, async (req, res) => {
     const { number, hasAired } = req.body;
 
     try {
@@ -119,6 +120,7 @@ const episodeRoutes = (router) => {
   router.post(
     "/episodes/:episodeId/events",
     authenticateUser,
+    requireAdmin,
     async (req, res) => {
       const { episodeId } = req.params;
       const episodeKey = parseInt(episodeId);
@@ -182,7 +184,7 @@ const episodeRoutes = (router) => {
   });
 
   // Assign current episode
-  router.post("/episodes/current", authenticateUser, async (req, res) => {
+  router.post("/episodes/current", authenticateUser, requireAdmin, async (req, res) => {
     const { episodeId } = req.body;
     const episodeKey = parseInt(episodeId);
 
@@ -241,6 +243,7 @@ const episodeRoutes = (router) => {
   router.put(
     "/episodes/:episodeId/stars",
     authenticateUser,
+    requireAdmin,
     async (req, res) => {
       const { episodeId } = req.params;
       const episodeKey = parseInt(episodeId);
@@ -280,10 +283,13 @@ const episodeRoutes = (router) => {
   router.post(
     "/episodes/:episodeId/calculateDeltas",
     authenticateUser,
+    requireAdmin,
     async (req, res) => {
       const { episodeId } = req.params;
       const { force } = req.body; // Allow forcing calculation even if users haven't ranked
       const episodeKey = parseInt(episodeId);
+
+      try {
 
       const episode = await prisma.episode.findUnique({
         where: { id: episodeKey },
@@ -366,27 +372,7 @@ const episodeRoutes = (router) => {
         });
 
         for (const userBet of userBets) {
-          const { better, won, maxLose, odds, acceptedUsers } = userBet;
-
-          // Skip if bet hasn't been resolved yet
-          if (won === null) continue;
-
-          const isUserBetter = better.id === user.id;
-
-          let deltaChange = 0;
-          if (isUserBetter) {
-            // Better wins: gets maxLose from each accepted user, multiplied by inverse odds
-            // Better loses: loses maxLose to each accepted user
-            deltaChange = won
-              ? maxLose * acceptedUsers.length * (1 / odds)
-              : -maxLose * acceptedUsers.length;
-          } else {
-            // Acceptor wins (bet lost): gets maxLose from better
-            // Acceptor loses (bet won): loses maxLose * (1/odds) to better
-            deltaChange = won ? -maxLose * (1 / odds) : maxLose;
-          }
-
-          totalDelta += deltaChange;
+          totalDelta += betDeltaForUser(userBet, user.id);
         }
 
         const split = getSplit(rankings.length) || getSplit(episodeStarCount);
@@ -427,6 +413,10 @@ const episodeRoutes = (router) => {
       await Promise.all(userDeltaPromises);
 
       res.json({});
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to calculate deltas" });
+      }
     }
   );
 
@@ -434,6 +424,7 @@ const episodeRoutes = (router) => {
   router.delete(
     "/episodes/:episodeId/deltas",
     authenticateUser,
+    requireAdmin,
     async (req, res) => {
       const { episodeId } = req.params;
       const episodeKey = parseInt(episodeId);
