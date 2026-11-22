@@ -25,10 +25,18 @@ const Bets = () => {
   const { user: sessionUser } = useSelector(sessionSelector);
   const [description, setDescription] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [touchedUsers, setTouchedUsers] = useState(false);
+
+  // Everyone except me, by default
+  const otherUserIds = users
+    .filter((user) => user.id !== sessionUser?.id)
+    .map((user) => user.id);
+  const otherUserKey = otherUserIds.join(",");
   const [selectedOdds, setSelectedOdds] = useState([1, 1]);
   const [maxLose, setMaxLose] = useState("");
 
   const handleUserChange = (event) => {
+    setTouchedUsers(true);
     setSelectedUsers(event.target.value);
   };
 
@@ -42,10 +50,16 @@ const Bets = () => {
 
     dispatch(createBet(betData));
     setDescription("");
-    setSelectedUsers([]);
+    setSelectedUsers(otherUserIds);
+    setTouchedUsers(false);
     setSelectedOdds([1, 1]);
     setMaxLose("");
   };
+
+  // Default eligible users to all other users once users load
+  useEffect(() => {
+    if (!touchedUsers) setSelectedUsers(otherUserIds);
+  }, [otherUserKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatch(fetchUsers());
